@@ -1,6 +1,4 @@
 
-from abc import abstractmethod
-
 class IDirection:
     @abstractmethod
     def avancer(self):

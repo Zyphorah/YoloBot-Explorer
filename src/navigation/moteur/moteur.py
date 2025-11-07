@@ -1,4 +1,4 @@
-from Navigation.Moteur.Interfaces.IDirection import IDirection
+from   navigation.moteur.interfaces.i_direction import IDirection
 
 class Moteur(IDirection):
 

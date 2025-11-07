@@ -1,5 +1,5 @@
 from gpiozero import DigitalOutputDevice
-from Navigation.Moteur.Moteur import Moteur
+from navigation.moteur.moteur import Moteur
 import time
 
 # GPIO pins en mode BCM (converti de BOARD)
