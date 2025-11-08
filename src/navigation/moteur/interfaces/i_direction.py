@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-class IDirection:
+class i_direction:
     @abstractmethod
     def avancer(self):
         pass
