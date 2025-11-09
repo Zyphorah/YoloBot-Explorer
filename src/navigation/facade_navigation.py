@@ -5,6 +5,7 @@ from navigation.gestion_collision.radar import Radar
 from navigation.moteur.moteur import Moteur
 
 class FacadeNavigation:
+    
     def tourner_angle(self, angle=90, duree=None):
         if duree is None:
             duree = angle / 360 * 4  # 4 secondes pour 360 degrés
@@ -34,7 +35,6 @@ class FacadeNavigation:
         #TRIG → GPIO23 (BCM 23, phys. pin 16)
         #ECHO → GPIO24 (BCM 24, phys. pin 18)
         # TRIG = GPIO23, ECHO = GPIO24
-
         
         self.radar = Radar(DistanceSensor(echo=24, trigger=23))
         self.collision = collision(self.radar)
