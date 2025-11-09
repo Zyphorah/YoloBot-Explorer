@@ -1,4 +1,6 @@
-from gpiozero import DigitalOutputDevice
+from gpiozero import DigitalOutputDevice, DistanceSensor
+from navigation.gestion_collision.collision import collision
+from navigation.gestion_collision.radar import Radar
 from navigation.moteur.moteur import Moteur
 
 class FacadeNavigation:
@@ -16,10 +18,33 @@ class FacadeNavigation:
 
         self.moteurA = Moteur(self.N1, self.N2)
         self.moteurB = Moteur(self.N3, self.N4)
+        
+        #HC-SR04 radar
+        #VCC → 5V (phys. pin 2 ou 4)
+        #GND → GND (phys. pin 6)
+        #TRIG → GPIO23 (BCM 23, phys. pin 16)
+        #ECHO → GPIO24 (BCM 24, phys. pin 18)
+        # TRIG = GPIO23, ECHO = GPIO24
+
+        
+        self.radar = Radar(DistanceSensor(echo=24, trigger=23))
+        self.collision = collision(self.radar)
 
     def avancer(self):
+        import time
         self.moteurA.avancer()
         self.moteurB.avancer()
+        try:
+            while True:
+                if self.collision.detecter_collision():
+                    self.moteurA.arreter()
+                    self.moteurB.arreter()
+                    print("Collision détectée ! Moteurs arrêtés.")
+                    break
+                time.sleep(0.1)  # vérifie toutes les 100 ms
+        except KeyboardInterrupt:
+            self.moteurA.arreter()
+            self.moteurB.arreter()
 
     def reculer(self):
         self.moteurA.reculer()

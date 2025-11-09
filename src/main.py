@@ -1,10 +1,8 @@
+import time
 from navigation import facade_navigation
-time = __import__('time')
+from navigation.gestion_collision.radar import Radar
 
 navigation = facade_navigation.FacadeNavigation()
 
-
-##navigation.avancer()
-##time.sleep(2)
-
-navigation.cleanup()
+navigation.avancer()
+time.sleep(20)
