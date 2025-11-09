@@ -1,8 +1,14 @@
 import time
 from navigation import facade_navigation
-from navigation.gestion_collision.radar import Radar
 
 navigation = facade_navigation.FacadeNavigation()
 
-navigation.avancer()
-time.sleep(20)
+while True:
+    collision = navigation.avancer()
+    if collision:
+        print("Collision! Je recule...")
+        navigation.reculer()
+        time.sleep(1)
+        navigation.arreter()
+        print("Je tourne...")
+        navigation.tourner_angle(angle=90, duree=1)
