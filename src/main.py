@@ -13,13 +13,15 @@
 #         print("Je tourne...")
 #         navigation.tourner_angle(angle=90, duree=1)
 
+import os
+import sys
 import time
 from navigation import facade_navigation
 from vision.camera import Camera
 
 
 def main():
-    ##navigation = facade_navigation.FacadeNavigation()
+    navigation = facade_navigation.FacadeNavigation()
     # Prefer local custom weights if present, otherwise try a known fallback
     requested_weights = "yolov8n.pt"
     fallback_weights = "yolov8n.pt"
@@ -70,4 +72,6 @@ def main():
     finally:
         navigation.arreter()
         camera.release()
-main()
+
+if __name__ == "__main__":
+    main()
