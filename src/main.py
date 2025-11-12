@@ -20,7 +20,7 @@ from vision.camera import Camera
 
 def main():
     navigation = facade_navigation.FacadeNavigation()
-    camera = Camera(model_path="yolov13n.pt")
+    camera = Camera(model_path="yolov8n.pt")
 
     try:
         while True:
