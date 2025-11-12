@@ -37,16 +37,16 @@ def main():
                         time.sleep(1)
                         navigation.arreter()
                         print("Je tourne...")
-                        navigation.tourner_angle(angle=90, duree=1)
+                        navigation.tourner_angle_droit(angle=90)
                 elif objet['position'] == 'gauche':
                     print("Objet a gauche, je tourne a droite.")
-                    navigation.tourner_angle(angle=45, duree=0.5)
+                    navigation.tourner_angle_droit(angle=45)
                 elif objet['position'] == 'droite':
                     print("Objet a droite, je tourne a gauche.")
-                    navigation.tourner_angle(angle=-45, duree=0.5)
+                    navigation.tourner_angle_droit(angle=-45)
             else:
                 print("Aucun objet detecte, je cherche...")
-                navigation.tourner_angle(angle=30, duree=0.5)
+                navigation.tourner_angle_droit(angle=30)
 
             time.sleep(0.1)
 
