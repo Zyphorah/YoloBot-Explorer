@@ -6,12 +6,22 @@ from navigation.moteur.moteur import Moteur
 
 class FacadeNavigation:
     
-    def tourner_angle(self, angle=90, duree=None):
-        if duree is None:
-            duree = angle / 360 * 4  # 4 secondes pour 360 degrés
+    def duree(self, angle=90):
+        return angle / 360 * 4     
+    
+    def tourner_angle_droit(self, angle=90):
+        duree = self.duree(angle)
         
         self.moteurA.reculer() 
         self.moteurB.avancer()  
+        time.sleep(duree)
+        self.arreter()
+    
+    def tourner_angle_gauche(self, angle=90):
+        duree = self.duree(angle)
+        
+        self.moteurA.avancer()  
+        self.moteurB.reculer()  
         time.sleep(duree)
         self.arreter()
 
@@ -54,7 +64,6 @@ class FacadeNavigation:
             self.moteurA.arreter()
             self.moteurB.arreter()
             return False
-        return False
 
     def reculer(self):
         self.moteurA.reculer()
