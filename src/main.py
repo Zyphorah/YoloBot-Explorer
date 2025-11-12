@@ -11,4 +11,4 @@ while True:
         time.sleep(1)
         navigation.arreter()
         print("Je tourne...")
-        navigation.tourner_angle(angle=90, duree=1)
+        navigation.tourner_angle_droit(angle=90, duree=1)
