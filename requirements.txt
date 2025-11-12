@@ -6,4 +6,4 @@ RPi.GPIO
 supervision
 ultralytics
 opencv-python
-pip install opencv-python
+fastapi[standard]
