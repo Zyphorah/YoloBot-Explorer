@@ -6,3 +6,4 @@ RPi.GPIO
 supervision
 ultralytics
 opencv-python
+fastapi[standard]
