@@ -67,4 +67,3 @@ class FacadeNavigation:
     def cleanup(self):
         self.moteurA.cleanup()
         self.moteurB.cleanup()
-
