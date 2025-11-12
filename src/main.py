@@ -55,6 +55,4 @@ def main():
     finally:
         navigation.arreter()
         camera.release()
-
-
 main()
