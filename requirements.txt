@@ -1,3 +1,9 @@
 gpiozero
 lgpio
 RPi.GPIO
+
+# Computer Vision
+supervision
+ultralytics
+opencv-python
+pip install opencv-python
