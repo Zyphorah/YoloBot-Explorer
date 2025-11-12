@@ -23,7 +23,7 @@ from vision.camera import Camera
 def main():
     ##navigation = facade_navigation.FacadeNavigation()
     # Prefer local custom weights if present, otherwise try a known fallback
-    requested_weights = "yolov13n.pt"
+    requested_weights = "yolov8n.pt"
     fallback_weights = "yolov8n.pt"
 
     model_to_use = requested_weights if os.path.exists(requested_weights) else fallback_weights
@@ -41,7 +41,7 @@ def main():
 
     try:
         while True:
-            objet = camera.detecter_objets(classe_cible="person")
+            objet = camera.detecter_objets(classe_cible="animal")
 
             if objet:
                 print(f"Objets detectes: {objet} à la position {objet['position']}")
