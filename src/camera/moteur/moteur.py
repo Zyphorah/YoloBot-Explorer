@@ -1,7 +1,7 @@
 from Adafruit_PCA9685 import PCA9685
 from time import sleep
 
-pwm = PCA9685()
+pwm = PCA9685(busnum=1)  
 pwm.set_pwm_freq(60)
 
 channel = 0

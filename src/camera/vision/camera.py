@@ -1,3 +1,4 @@
+from time import sleep
 import cv2
 from ultralytics import YOLO, YOLOWorld
 
@@ -12,9 +13,11 @@ class Camera:
 
     def detecter_objets(self, classe_cible: str) -> dict:
         """Detecte les objets dans le flux vidéo en temps réel."""
+        sleep(0.32)
         ret, frame = self.cap.read()
         if not ret:
-            return None
+            print()
+            
         
         results = self.model(frame)[0]
         objet_detecte = None
