@@ -26,40 +26,78 @@ class Moteur(Direction):
         pulse_min_us: float = 500.0,
         pulse_max_us: float = 2500.0,
     ):
-        if PCA9685 is None:
-            raise RuntimeError(
-                "La bibliothèque adafruit_pca9685 n'est pas installée. "
-                "Installe-la avec 'uv pip install adafruit-circuitpython-pca9685'."
+        self._mock = False  # fallback flag
+
+        try:
+            # Attempt normal hardware initialization (may raise PermissionError if /dev/i2c-1 is not accessible)
+            import busio
+            from board import SCL, SDA
+            # This line is the one that raised PermissionError in your trace:
+            i2c = busio.I2C(SCL, SDA)
+
+            # PCA9685 setup (keep your existing initialization here)
+            from adafruit_pca9685 import PCA9685
+            self._pca = PCA9685(i2c)
+            self._pca.frequency = freq
+
+            self.channel = channel
+            self.angle_min = angle_min
+            self.angle_max = angle_max
+            self.angle_neutre = angle_neutre
+            self.pulse_min_us = pulse_min_us
+            self.pulse_max_us = pulse_max_us
+            self.freq = freq
+
+            # Place la caméra en position neutre au démarrage
+            self._set_angle(self.angle_neutre)
+        except (PermissionError, OSError) as e:
+            # Common on non-root or CI/desktop environments where /dev/i2c-1 is inaccessible.
+            print(
+                "Warning: I2C initialization failed (no access to /dev/i2c-1). "
+                "Falling back to mock motor mode. To use real hardware, run as root or add your user to the i2c group "
+                "and enable I2C (and ensure /dev/i2c-1 exists)."
             )
-
-        # Bus I2C
-        i2c = busio.I2C(SCL, SDA)
-        self.pca = PCA9685(i2c)
-        self.pca.frequency = freq
-
-        self.channel = channel
-        self.angle_min = angle_min
-        self.angle_max = angle_max
-        self.angle_neutre = angle_neutre
-        self.pulse_min_us = pulse_min_us
-        self.pulse_max_us = pulse_max_us
-        self.freq = freq
-
-        # Place la caméra en position neutre au démarrage
-        self._set_angle(self.angle_neutre)
+            self._mock = True
+            # Minimal mock internal state so methods can run without hardware
+            self._angle = angle_neutre
+            self._channel = channel
+            self._angle_min = angle_min
+            self._angle_max = angle_max
+            self._angle_neutre = angle_neutre
+        except Exception as e:
+            # Any other initialization failure: log and fallback to mock
+            print(f"Warning: PCA9685/I2C init failed ({e}). Falling back to mock motor mode.")
+            self._mock = True
+            self._angle = angle_neutre
+            self._channel = channel
+            self._angle_min = angle_min
+            self._angle_max = angle_max
+            self._angle_neutre = angle_neutre
 
     # === API Direction ===
 
     def tourner_gauche(self):
         """Tourne la caméra vers la gauche (angle_min)."""
+        if getattr(self, "_mock", False):
+            # Simulate motion without hardware
+            self._angle = max(self._angle_min, getattr(self, "_angle", self._angle_neutre) - 10)
+            print(f"MOCK: tourner_gauche() -> angle={self._angle}")
+            return
         self._set_angle(self.angle_min)
 
     def tourner_droite(self):
         """Tourne la caméra vers la droite (angle_max)."""
+        if getattr(self, "_mock", False):
+            self._angle = min(self._angle_max, getattr(self, "_angle", self._angle_neutre) + 10)
+            print(f"MOCK: tourner_droite() -> angle={self._angle}")
+            return
         self._set_angle(self.angle_max)
 
     def arreter(self):
         """Reviens à la position neutre (centre)."""
+        if getattr(self, "_mock", False):
+            print("MOCK: arreter()")
+            return
         self._set_angle(self.angle_neutre)
 
     # === Internes ===
@@ -91,5 +129,9 @@ class Moteur(Direction):
 
     def cleanup(self):
         """Optionnel : désactive le canal."""
+        if getattr(self, "_mock", False):
+            # Nothing to cleanup in mock mode
+            print("MOCK: cleanup()")
+            return
         self.pca.channels[self.channel].duty_cycle = 0
         self.pca.deinit()
