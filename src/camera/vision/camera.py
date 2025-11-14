@@ -34,6 +34,16 @@ class Camera:
                         "position": 'centre' if abs(centre_x - largeur_frame/2) < 50 
                                    else ('gauche' if centre_x < largeur_frame/2 else 'droite')
                     }
+                    
+                    # Dessiner le rectangle et le texte sur la frame
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    texte = f"{nom_classe} {confiance:.2f}"
+                    cv2.putText(frame, texte, (x1, y1 - 10), 
+                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+        # Afficher la frame avec les détections
+        cv2.imshow('Detection Camera', frame)
+        cv2.waitKey(1)  # Nécessaire pour rafraîchir la fenêtre
 
         return objet_detecte
 
