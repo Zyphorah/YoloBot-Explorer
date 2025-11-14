@@ -1,6 +1,6 @@
 from gpiozero import DigitalOutputDevice, DistanceSensor
 import time
-from navigation.gestion_collision.collision import collision
+from navigation.gestion_collision.anti_collision import Anti_collision
 from navigation.gestion_collision.radar import Radar
 from navigation.moteur.moteur import Moteur
 
@@ -47,7 +47,7 @@ class FacadeNavigation:
         # TRIG = GPIO23, ECHO = GPIO24
         
         self.radar = Radar(DistanceSensor(echo=24, trigger=23))
-        self.collision = collision(self.radar)
+        self.collision = Anti_collision(self.radar)
 
     def avancer(self):
         self.moteurA.avancer()

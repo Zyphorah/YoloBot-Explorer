@@ -1,4 +1,4 @@
-class collision:
+class Anti_collision:
     
     def __init__(self, radar):
         self.radar = radar
