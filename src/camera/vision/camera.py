@@ -1,18 +1,24 @@
+from time import sleep
 import cv2
-from ultralytics import YOLO
+from ultralytics import YOLO, YOLOWorld
 
 
 class Camera:
     def __init__(self, model_path: str) :
         self.cap = cv2.VideoCapture(0)
         self.model = YOLO(model_path)
+        # self.model_world = YOLOWorld(model_world)
+
+        # self.model_world.set_classes(["person", "ball"])
 
     def detecter_objets(self, classe_cible: str) -> dict:
         """Detecte les objets dans le flux vidéo en temps réel."""
+        sleep(0.32)
         ret, frame = self.cap.read()
+        
         if not ret:
             return None
-        
+        print("Frame : ", frame.shape)
         results = self.model(frame)[0]
         objet_detecte = None
 

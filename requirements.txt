@@ -10,3 +10,4 @@ fastapi[standard]
 
 # Hardware
 adafruit-circuitpython-pca9685
+Adafruit_PCA9685
