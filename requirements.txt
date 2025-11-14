@@ -7,3 +7,6 @@ supervision
 ultralytics
 opencv-python
 fastapi[standard]
+
+# Hardware
+adafruit-circuitpython-pca9685
