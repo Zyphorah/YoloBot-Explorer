@@ -13,9 +13,10 @@ class Camera:
     def detecter_objets(self, classe_cible: str) -> dict:
         """Detecte les objets dans le flux vidéo en temps réel."""
         ret, frame = self.cap.read()
+        
         if not ret:
             return None
-        
+        print("Frame : ", frame.shape)
         results = self.model(frame)[0]
         objet_detecte = None
 
