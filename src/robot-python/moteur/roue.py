@@ -1,16 +1,17 @@
-from   navigation.moteur.interfaces.i_direction import i_direction
+from .interfaces.i_rotation import IRotation
+from .interfaces.i_cleanup import ICleanup
 
-class Moteur(i_direction):
+class Moteur(IRotation, ICleanup):
 
     def __init__(self, n1, n2):
         self.n1 = n1
         self.n2 = n2
 
-    def avancer(self):
+    def tourner_droite(self):
         self.n1.off()
         self.n2.on()
 
-    def reculer(self):
+    def tourner_gauche(self):
         self.n1.on()
         self.n2.off()
 

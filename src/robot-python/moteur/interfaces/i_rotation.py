@@ -1,18 +1,14 @@
 from abc import ABC, abstractmethod
 
-class i_direction(ABC):
+class IRotation(ABC):
     @abstractmethod
-    def avancer(self):
+    def tourner_droite(self):
         pass
 
     @abstractmethod
-    def reculer(self): 
+    def tourner_gauche(self): 
         pass
 
     @abstractmethod
     def arreter(self):
-        pass
-
-    @abstractmethod
-    def cleanup():
         pass
