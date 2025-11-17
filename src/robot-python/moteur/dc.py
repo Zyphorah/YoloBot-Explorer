@@ -1,7 +1,7 @@
-from .interfaces.i_rotation import IRotation
+from .interfaces.i_rotation import IRotation_angle
 from .interfaces.i_cleanup import ICleanup
 
-class Dc(IRotation ,ICleanup):
+class Dc(IRotation_angle, ICleanup):
 
     def __init__(self, n1, n2):
         self.n1 = n1

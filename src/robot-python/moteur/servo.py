@@ -1,9 +1,10 @@
 from moteur.interfaces.i_cleanup import ICleanup
+from moteur.interfaces.i_rotation_angle import IRotation_angle
 
 from Adafruit_PCA9685 import PCA9685
 from time import sleep
 
-class Servo(ICleanup): 
+class Servo(IRotation_angle, ICleanup): 
     def __init__(self):
         self.pwm = PCA9685(busnum=1)
         # Définir les limites de pulse pour 0° et 180°
