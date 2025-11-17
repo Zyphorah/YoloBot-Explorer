@@ -1,7 +1,7 @@
 from .interfaces.i_rotation import IRotation
 from .interfaces.i_cleanup import ICleanup
 
-class Moteur(IRotation, ICleanup):
+class Dc(IRotation ,ICleanup):
 
     def __init__(self, n1, n2):
         self.n1 = n1

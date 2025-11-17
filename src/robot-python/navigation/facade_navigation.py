@@ -2,12 +2,11 @@ from gpiozero import DigitalOutputDevice, DistanceSensor
 import time
 from navigation.gestion_collision.anti_collision import Anti_collision
 from navigation.gestion_collision.radar import Radar
-from moteur.roue import Moteur
+from moteur.dc import Dc
 
 class FacadeNavigation:
     
-    def duree(self, angle=90):
-        return angle / 360 * 4     
+    
     
     def tourner_angle_droit(self, angle=90):
         duree = self.duree(angle)
@@ -36,8 +35,8 @@ class FacadeNavigation:
         self.N3 = DigitalOutputDevice(4)
         self.N4 = DigitalOutputDevice(17)
 
-        self.moteurA = Moteur(self.N1, self.N2)
-        self.moteurB = Moteur(self.N3, self.N4)
+        self.moteurA = Dc(self.N1, self.N2)
+        self.moteurB = Dc(self.N3, self.N4)
         
         #HC-SR04 radar
         #VCC → 5V (phys. pin 2 ou 4)
