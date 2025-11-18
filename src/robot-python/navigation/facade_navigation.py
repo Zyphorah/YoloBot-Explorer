@@ -5,9 +5,7 @@ from navigation.gestion_collision.radar import Radar
 from moteur.dc import Dc
 
 class FacadeNavigation:
-    
-    
-    
+
     def tourner_angle_droit(self, angle=90):
         duree = self.duree(angle)
         
