@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'MenuBuildContent/menu_build_content.dart';
-import 'MenuBuildContent/menu_logo.dart';
+import 'menu_build_content/menu_build_content.dart';
+import 'menu_build_content/menu_logo.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});

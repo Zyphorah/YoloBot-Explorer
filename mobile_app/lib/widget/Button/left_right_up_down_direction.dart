@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'DirectionalButton.dart';
+import 'directional_button.dart';
 
 class LeftRightUpDownDirection extends StatelessWidget {
   bool isStopping;

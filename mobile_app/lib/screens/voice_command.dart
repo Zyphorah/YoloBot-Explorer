@@ -8,14 +8,35 @@ class VoiceCommand extends StatefulWidget {
 }
 
 class _VoiceCommandState extends State<VoiceCommand> {
+  bool isActivated = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Commandes vocales'),
       ),
-      body: const Center(
-        child: Text('Interface de commandes vocales à implémenter'),
+      body: Center(
+        child: GestureDetector(
+          onTap: () {
+            setState(() {
+              isActivated = !isActivated;
+            });
+          },
+          child: Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isActivated ? Colors.red : Colors.grey,
+            ),
+            child: Icon(
+              isActivated ? Icons.mic : Icons.mic_none,
+              size: 60,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
