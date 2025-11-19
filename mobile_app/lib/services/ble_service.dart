@@ -9,13 +9,12 @@ class BleService {
   factory BleService() => _instance;
   BleService._internal();
 
-  // --- UUIDs (DOIVENT MATCHER CEUX DU PYTHON) ---
+  // --- UUIDs ---
   final String _serviceUuid = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD";
   final String _charRxUuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"; // Envoi
   final String _charTxUuid =
       "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021C"; // Réception
 
-  // --- Variables d'état ---
   BluetoothDevice? _connectedDevice;
   BluetoothCharacteristic? _rxCharacteristic; // Pour écrire
   BluetoothCharacteristic? _txCharacteristic; // Pour écouter
@@ -36,43 +35,35 @@ class BleService {
 
   /// Initialisation (optionnel, pour log ou setup)
   void init() {
-    // Écouteur global de l'état du Bluetooth (On/Off)
     FlutterBluePlus.adapterState.listen((state) {
       print("État adaptateur Bluetooth: $state");
     });
   }
 
-  /// Lance le scan pour trouver le robot
   Future<void> startScan() async {
     print("Démarrage du scan...");
 
-    // On écoute les résultats du scan
     FlutterBluePlus.scanResults.listen((results) {
       _scanResultsController.add(results);
     });
 
-    // On lance le scan en filtrant par UUID pour ne trouver que NOTRE robot
-    // Cela évite de lister les télés et écouteurs des voisins.
     await FlutterBluePlus.startScan(
       timeout: const Duration(seconds: 5),
       withServices: [Guid(_serviceUuid)],
     );
   }
 
-  /// Arrête le scan
   Future<void> stopScan() async {
     await FlutterBluePlus.stopScan();
   }
 
-  /// Connexion au robot
   Future<void> connect(BluetoothDevice device) async {
-    await stopScan(); // Toujours arrêter le scan avant de connecter
+    await stopScan();
 
     try {
-      await device.connect(autoConnect: false, license: null);
+      await device.connect(autoConnect: true, license: License.free);
       _connectedDevice = device;
 
-      // Écouter l'état de connexion (connecté/déconnecté)
       device.connectionState.listen((state) {
         _connectionStateController.add(state);
         if (state == BluetoothConnectionState.disconnected) {
@@ -81,7 +72,6 @@ class BleService {
         }
       });
 
-      // Découverte des services
       print("Recherche des services...");
       List<BluetoothService> services = await device.discoverServices();
 
@@ -121,7 +111,6 @@ class BleService {
     }
   }
 
-  /// Déconnexion manuelle
   Future<void> disconnect() async {
     if (_connectedDevice != null) {
       await _connectedDevice!.disconnect();
@@ -129,7 +118,6 @@ class BleService {
     }
   }
 
-  /// Envoie une commande texte au robot
   Future<void> sendCommand(String command) async {
     if (_rxCharacteristic == null) {
       print("Erreur: Non connecté ou caractéristique RX introuvable.");
@@ -137,7 +125,6 @@ class BleService {
     }
 
     try {
-      // Encodage en UTF-8
       List<int> bytes = utf8.encode(command);
       // Écriture sans réponse (plus rapide pour le contrôle temps réel)
       await _rxCharacteristic!.write(bytes, withoutResponse: true);
