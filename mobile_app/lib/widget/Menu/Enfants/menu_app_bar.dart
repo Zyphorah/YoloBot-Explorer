@@ -45,8 +45,16 @@ class MenuAppBar extends StatelessWidget implements PreferredSizeWidget {
               child: IconButton(
                 onPressed: toggleDrawer,
                 icon: isDrawerOpen() || isDrawerOpening()
-                    ? const Icon(Icons.close_rounded, color: Color(0xFF6C63FF), size: 28)
-                    : const Icon(Icons.menu_rounded, color: Color(0xFF1A1A2E), size: 28),
+                    ? const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF6C63FF),
+                        size: 28,
+                      )
+                    : const Icon(
+                        Icons.menu_rounded,
+                        color: Color(0xFF1A1A2E),
+                        size: 28,
+                      ),
               ),
             );
           },
