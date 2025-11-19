@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widget/Button/action_button.dart';
-import '../widget/Button/left_right_up_down_direction.dart';
-import '../widget/Button/stop.dart';
+import '../widget/button/action_button.dart';
+import '../widget/button/left_right_up_down_direction.dart';
+import '../widget/button/stop.dart';
 
 class ManualCommand extends StatefulWidget {
   const ManualCommand({super.key});
