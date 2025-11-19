@@ -16,13 +16,13 @@ class _ManualCommandState extends State<ManualCommand> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // fond blanc
+      backgroundColor: Colors.white, 
       body: Stack(
         children: [
           // Fond avec grille gaming
           Container(
             decoration: BoxDecoration(
-              color: Colors.white, // fond blanc
+              color: Colors.white, 
             ),
           ),
           // Contenu principal
@@ -35,7 +35,7 @@ class _ManualCommandState extends State<ManualCommand> {
                   child: Text(
                     'COMMANDE MANUELLE',
                     style: TextStyle(
-                      color: Colors.white, // texte blanc
+                      color: Colors.white, 
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 2,
@@ -152,6 +152,10 @@ class _ManualCommandState extends State<ManualCommand> {
                         label: 'DÉTECTER',
                         isActive: isDetecting,
                         onPressed: () {
+                          if(isAutonomous && !isDetecting) {
+                            // Empêcher l'activation de la détection si en mode autonome
+                            return;
+                          }
                           setState(() => isDetecting = !isDetecting);
                         },
                         color: Colors.orange,
@@ -162,6 +166,11 @@ class _ManualCommandState extends State<ManualCommand> {
                         label: 'AUTONOME',
                         isActive: isAutonomous,
                         onPressed: () {
+                          if (isDetecting && !isAutonomous) {
+                            // Empêcher l'activation du mode autonome si la détection est active
+                            return;
+                          }
+                          
                           setState(() => isAutonomous = !isAutonomous);
                         },
                         color: Colors.purple,
