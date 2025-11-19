@@ -14,7 +14,6 @@ class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
   static const _menuTitles = [
     'Écran de connexion BLE',
     'Commandes vocales',
-    'Commandes manuelles',
     'Retour d’état',
   ];
 

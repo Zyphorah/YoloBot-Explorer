@@ -1,18 +1,18 @@
 // Code source pour lib/widget/Menu/menu.dart https://docs.flutter.dev/cookbook/effects/staggered-menu-animation
 import 'package:flutter/material.dart';
+import '../widget/Menu/menu_app_bar.dart';
+import '../widget/Menu/menu_build_drawer.dart';
+import '../widget/Menu/Logiques/drawer_controller_helper.dart';
+import 'manual_command.dart';
 
-import 'Enfants/menu_app_bar.dart';
-import 'Enfants/menu_build_drawer.dart';
-import 'Logiques/drawer_controller_helper.dart';
-
-class StaggeredAnimations extends StatefulWidget {
-  const StaggeredAnimations({super.key});
+class MenuStaggeredAnimations extends StatefulWidget {
+  const MenuStaggeredAnimations({super.key});
 
   @override
-  State<StaggeredAnimations> createState() => _StaggeredAnimationsState();
+  State<MenuStaggeredAnimations> createState() => _MenuStaggeredAnimationsState();
 }
 
-class _StaggeredAnimationsState extends State<StaggeredAnimations>
+class _MenuStaggeredAnimationsState extends State<MenuStaggeredAnimations>
     with SingleTickerProviderStateMixin {
   late AnimationController _drawerSlideController;
   late final DrawerControllerHelper _drawerControllerHelper =
@@ -47,10 +47,12 @@ class _StaggeredAnimationsState extends State<StaggeredAnimations>
       body: Stack(
         children: [
           const SizedBox(),
+          ManualCommand(),
           MenuBuildDrawer(
             drawerSlideController: _drawerSlideController,
             isDrawerClosed: _drawerControllerHelper.isDrawerClosed,
           ),
+         
         ],
       ),
     );

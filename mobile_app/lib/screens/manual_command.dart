@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import '../widget/Direction/DirectionalButton.dart';
+import '../widget/Button/DirectionalButton.dart';
 
 class ManualCommand extends StatefulWidget {
+  const ManualCommand({super.key});
+
   @override
   State<ManualCommand> createState() => _ManualCommandState();
 }
 
 class _ManualCommandState extends State<ManualCommand> {
-  bool isAccelerating = false;
   bool isDetecting = false;
   bool isAutonomous = false;
   bool isStopping = false;
@@ -42,50 +43,61 @@ class _ManualCommandState extends State<ManualCommand> {
                   ),
                 ),
                 Expanded(
-                  child: Row(
+                  child: Column(
                     children: [
-                      // Contrôles gauche (accélération et arrêt)
+                      // Contrôles droite (direction)
                       Expanded(
+                        flex: 2,
                         child: Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            // Bouton Accélération
-                            GestureDetector(
-                              onTapDown: (_) {
-                                setState(() => isAccelerating = true);
+                            // Flèche haut
+                            SizedBox(height: 20),
+                            DirectionalButton(
+                              icon: Icons.arrow_upward,
+                              label: 'AVANCER',
+                              onPressed: () {
+                                print('Avancer');
                               },
-                              onTapUp: (_) {
-                                setState(() => isAccelerating = false);
-                              },
-                              child: AnimatedContainer(
-                                duration: Duration(milliseconds: 100),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: isAccelerating
-                                        ? [Color(0xFF00ff41), Color(0xFF00cc33)]
-                                        : [Color(0xFF00aa22), Color(0xFF006611)],
-                                  ),
-                                ),
-                                width: 120,
-                                height: 120,
-                                child: Center(
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.arrow_upward,
-                                          color: Colors.white, size: 40),
-                                      Text('Avancer',
-                                          style: TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 10,
-                                              letterSpacing: 1))
-                                    ],
-                                  ),
-                                ),
-                              ),
                             ),
+                            SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                DirectionalButton(
+                                  icon: Icons.arrow_left,
+                                  label: 'GAUCHE',
+                                  onPressed: () {
+                                    print('Tourner à gauche');
+                                  },
+                                ),
+                                DirectionalButton(
+                                  icon: Icons.arrow_right,
+                                  label: 'DROITE',
+                                  onPressed: () {
+                                    print('Tourner à droite');
+                                  },
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 16),
+                            DirectionalButton(
+                              icon: Icons.arrow_downward,
+                              label: 'RECULER',
+                              onPressed: () {
+                                print('Reculer');
+                              },
+                            ),
+                            SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                      // Contrôles gauche (retirer accélération, garder arrêt)
+                      Expanded(
+                        flex: 1,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
                             // Bouton STOP (frein)
                             GestureDetector(
                               onTapDown: (_) {
@@ -111,7 +123,7 @@ class _ManualCommandState extends State<ManualCommand> {
                                     children: [
                                       Icon(Icons.stop_circle,
                                           color: Colors.white, size: 40),
-                                      Text('STOP',
+                                      Text('Stop',
                                           style: TextStyle(
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold,
@@ -122,39 +134,6 @@ class _ManualCommandState extends State<ManualCommand> {
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      // Contrôles droite (direction)
-                      Expanded(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            // Flèche haut
-                            SizedBox(height: 40),
-                            // Flèches gauche et droite
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // Flèche gauche
-                                DirectionalButton(
-                                  icon: Icons.arrow_left,
-                                  label: 'GAUCHE',
-                                  onPressed: () {
-                                    print('Tourner à gauche');
-                                  },
-                                ),
-                                // Flèche droite
-                                DirectionalButton(
-                                  icon: Icons.arrow_right,
-                                  label: 'DROITE',
-                                  onPressed: () {
-                                    print('Tourner à droite');
-                                  },
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 60),
                           ],
                         ),
                       ),

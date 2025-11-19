@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-
-import '../../../../../screens/scan_screen.dart'; // Importez l'écran de scan
+import '../../../../screens/scan_screen.dart'; 
 
 class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;
@@ -19,7 +18,6 @@ class MenuBuildListItems extends StatelessWidget {
     final menuIcons = [
       Icons.bluetooth_rounded,
       Icons.mic_rounded,
-      Icons.touch_app_rounded,
       Icons.info_rounded,
     ];
 
@@ -48,7 +46,6 @@ class MenuBuildListItems extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  // Navigation basée sur l'index
                   if (i == 0) {
                     Navigator.push(
                       context,
@@ -57,7 +54,6 @@ class MenuBuildListItems extends StatelessWidget {
                       ),
                     );
                   }
-                  // Vous pourrez ajouter les autres pages ici (else if (i == 1) ...)
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
