@@ -17,7 +17,7 @@ class BleService {
 
   BluetoothDevice? _connectedDevice;
   BluetoothCharacteristic? _rxCharacteristic; // Pour écrire
-  BluetoothCharacteristic? _txCharacteristic; // Pour écouter
+// Pour écouter
 
   // Streams pour mettre à jour l'UI
   final _scanResultsController = StreamController<List<ScanResult>>.broadcast();
@@ -90,7 +90,6 @@ class BleService {
 
             // Configuration TX (Lecture/Notification)
             if (uuid == _charTxUuid) {
-              _txCharacteristic = char;
               print("Caractéristique TX liée.");
 
               // Activer les notifications pour recevoir les réponses du robot
@@ -137,6 +136,5 @@ class BleService {
   void _cleanUp() {
     _connectedDevice = null;
     _rxCharacteristic = null;
-    _txCharacteristic = null;
   }
 }
