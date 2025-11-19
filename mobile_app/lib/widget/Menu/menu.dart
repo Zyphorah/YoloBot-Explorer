@@ -15,6 +15,7 @@ class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
     'Écran de connexion BLE',
     'Commandes vocales',
     'Retour d’état',
+    'Paramètres',
   ];
 
   static const _initialDelayTime = Duration(milliseconds: 50);

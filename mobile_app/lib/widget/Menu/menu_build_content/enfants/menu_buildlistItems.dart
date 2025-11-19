@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../screens/scan_screen.dart'; 
 import '../../../../screens/voice_command.dart';
 import '../../../../screens/return_to_state.dart';
+import '../../../../screens/settings.dart';
 
 class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;
@@ -21,6 +22,7 @@ class MenuBuildListItems extends StatelessWidget {
       Icons.bluetooth_rounded,
       Icons.mic_rounded,
       Icons.info_rounded,
+      Icons.settings_rounded,
     ];
 
     return Column(
@@ -73,6 +75,14 @@ class MenuBuildListItems extends StatelessWidget {
                             Navigator.pop(context);
                           },
                         ),
+                      ),
+                    );
+                  }
+                  if (i == 3) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
                       ),
                     );
                   }
