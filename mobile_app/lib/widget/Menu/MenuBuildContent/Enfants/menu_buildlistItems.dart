@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../screens/scan_screen.dart'; 
+import '../../../../screens/voice_command.dart';
+import '../../../../screens/return_to_state.dart';
 
 class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;
@@ -51,6 +53,26 @@ class MenuBuildListItems extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => const ScanScreen(),
+                      ),
+                    );
+                  }
+                  if (i == 1) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const VoiceCommand(),
+                      ),
+                    );
+                  }
+                  if (i == 2) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReturnToState(
+                          returnToPreviousState: () {
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
                     );
                   }
