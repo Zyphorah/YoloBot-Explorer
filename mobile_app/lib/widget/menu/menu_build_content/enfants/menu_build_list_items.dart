@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../screens/scan_screen.dart'; 
 import '../../../../screens/voice_command.dart';
 import '../../../../screens/return_to_state.dart';
-import '../../../../screens/Settings/settings.dart';
+import '../../../../screens/settings/settings.dart';
 
 class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;

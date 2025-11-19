@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart'; 
-import '../../../widget/Settings/settings_option.dart';  
+import '../../../widget/settings/settings_option.dart';  
 
 class FormeGeometrique extends StatefulWidget
 {
@@ -90,7 +90,7 @@ class _FormeGeometriqueState extends State<FormeGeometrique>
               isSelected: selectionColor == 'Bleu',
               onTap: () {
                 setState(() {
-                  selectedOption = 'Bleu';
+                  selectionColor = 'Bleu';
                 });
               },
             ),

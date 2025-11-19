@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'directional_button.dart';
 
+// ignore: must_be_immutable
 class LeftRightUpDownDirection extends StatelessWidget {
   bool isStopping;
   void Function(VoidCallback fn) setState;

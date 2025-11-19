@@ -1,8 +1,8 @@
 // Code source pour lib/widget/Menu/menu.dart https://docs.flutter.dev/cookbook/effects/staggered-menu-animation
 import 'package:flutter/material.dart';
-import '../widget/Menu/menu_app_bar.dart';
-import '../widget/Menu/menu_build_drawer.dart';
-import '../widget/Menu/logiques/drawer_controller_helper.dart';
+import '../widget/menu/menu_app_bar.dart';
+import '../widget/menu/menu_build_drawer.dart';
+import '../widget/menu/logiques/drawer_controller_helper.dart';
 import 'manual_command.dart';
 
 class MenuStaggeredAnimations extends StatefulWidget {

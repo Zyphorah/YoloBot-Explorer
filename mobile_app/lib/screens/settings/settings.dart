@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../widget/Settings/settings_option.dart';
+import '../../widget/settings/settings_option.dart';
 import 'enfants/forme_geometrique.dart';
 
 class SettingsScreen extends StatefulWidget {  
