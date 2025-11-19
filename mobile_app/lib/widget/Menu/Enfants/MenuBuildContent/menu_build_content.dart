@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'Enfants/menu_buildlistItems.dart';
 
 class MenuBuildContent extends StatelessWidget {
@@ -29,7 +30,7 @@ class MenuBuildContent extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF6C63FF).withOpacity(0.7),
+                  color: const Color(0xFF6C63FF).withAlpha(179),
                   letterSpacing: 1.2,
                 ),
               ),

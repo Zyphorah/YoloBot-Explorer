@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../screens/scan_screen.dart'; // Importez l'écran de scan
+
 class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;
   final List<Interval> itemSlideIntervals;
@@ -46,11 +48,23 @@ class MenuBuildListItems extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
-                  // Action au clic
+                  // Navigation basée sur l'index
+                  if (i == 0) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ScanScreen(),
+                      ),
+                    );
+                  }
+                  // Vous pourrez ajouter les autres pages ici (else if (i == 1) ...)
                 },
                 borderRadius: BorderRadius.circular(16),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 18,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
