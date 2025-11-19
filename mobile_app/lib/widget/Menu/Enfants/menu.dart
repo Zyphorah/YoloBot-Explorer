@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'Enfants/MenuLogo.dart';
-import 'Enfants/MenuBuildContent/MenuBuildContent.dart';
+
+import 'MenuBuildContent/menu_build_content.dart';
+import 'MenuBuildContent/menu_logo.dart';
 
 class Menu extends StatefulWidget {
   const Menu({super.key});
@@ -69,10 +70,7 @@ class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Colors.white,
-            const Color(0xFFF5F7FA),
-          ],
+          colors: [Colors.white, const Color(0xFFF5F7FA)],
         ),
       ),
       child: Stack(

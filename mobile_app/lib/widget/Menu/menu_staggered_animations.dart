@@ -1,21 +1,22 @@
-// source code pour lib/widget/Menu/menu.dart https://docs.flutter.dev/cookbook/effects/staggered-menu-animation
+// Code source pour lib/widget/Menu/menu.dart https://docs.flutter.dev/cookbook/effects/staggered-menu-animation
 import 'package:flutter/material.dart';
-import 'Enfants/MenuAppBar.dart';
-import 'Enfants/MenuBuildDrawer.dart';
-import 'Logiques/DrawerControllerHelper.dart';
+
+import 'Enfants/menu_app_bar.dart';
+import 'Enfants/menu_build_drawer.dart';
+import 'Logiques/drawer_controller_helper.dart';
 
 class StaggeredAnimations extends StatefulWidget {
   const StaggeredAnimations({super.key});
 
   @override
-  State<StaggeredAnimations> createState() =>
-      _StaggeredAnimationsState();
+  State<StaggeredAnimations> createState() => _StaggeredAnimationsState();
 }
 
 class _StaggeredAnimationsState extends State<StaggeredAnimations>
-  with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin {
   late AnimationController _drawerSlideController;
-  late DrawerControllerHelper _drawerControllerHelper = new DrawerControllerHelper(_drawerSlideController);
+  late final DrawerControllerHelper _drawerControllerHelper =
+      DrawerControllerHelper(_drawerSlideController);
 
   @override
   void initState() {
@@ -43,10 +44,15 @@ class _StaggeredAnimationsState extends State<StaggeredAnimations>
         isDrawerOpen: _drawerControllerHelper.isDrawerOpen,
         isDrawerOpening: _drawerControllerHelper.isDrawerOpening,
       ),
-      body: Stack(children: [const SizedBox(), MenuBuildDrawer(
-        drawerSlideController: _drawerSlideController,
-        isDrawerClosed: _drawerControllerHelper.isDrawerClosed,
-      )]),
+      body: Stack(
+        children: [
+          const SizedBox(),
+          MenuBuildDrawer(
+            drawerSlideController: _drawerSlideController,
+            isDrawerClosed: _drawerControllerHelper.isDrawerClosed,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -5,21 +5,39 @@ from ultralytics import YOLO, YOLOWorld
 
 class Camera:
     def __init__(self, model_path: str) :
-        self.cap = cv2.VideoCapture(0)
+        # Essayer d'ouvrir la caméra avec le backend V4L2
+        self.cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
+        
+        # Si échec, essayer le backend par défaut
+        if not self.cap.isOpened():
+            print("Attention: Backend V4L2 échoué, tentative avec le backend par défaut...")
+            self.cap = cv2.VideoCapture(0)
+
+        if not self.cap.isOpened():
+            print("ERREUR CRITIQUE: Impossible d'ouvrir la caméra. Vérifiez :")
+            print("1. Que la caméra est bien branchée.")
+            print("2. Que vous avez les permissions (essayez 'sudo usermod -a -G video $USER').")
+            print("3. Si une autre application n'utilise pas déjà la caméra.")
+
         self.model = YOLO(model_path)
         # self.model_world = YOLOWorld(model_world)
-
         # self.model_world.set_classes(["person", "ball"])
 
     def detecter_objets(self, classe_cible: str) -> dict:
         """Detecte les objets dans le flux vidéo en temps réel."""
-        sleep(0.32)
+        # sleep(0.32) # Réduit ou supprimé pour améliorer la fluidité
+        
+        if not self.cap.isOpened():
+            return None
+
         ret, frame = self.cap.read()
         
         if not ret:
+            print("Erreur: Impossible de lire une image depuis la caméra.")
             return None
-        print("Frame : ", frame.shape)
-        results = self.model(frame)[0]
+        
+        # print("Frame : ", frame.shape) # Commenté pour éviter de spammer la console
+        results = self.model(frame, verbose=False)[0] # verbose=False pour moins de logs
         objet_detecte = None
 
         for result in results:
@@ -47,12 +65,17 @@ class Camera:
                     cv2.putText(frame, texte, (x1, y1 - 10), 
                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-        # Afficher la frame avec les détections
-        cv2.imshow('Detection Camera', frame)
-        cv2.waitKey(1)  # Nécessaire pour rafraîchir la fenêtre
+        # Afficher la frame avec les détections (Gestion d'erreur pour le mode sans écran)
+        try:
+            cv2.imshow('Detection Camera', frame)
+            cv2.waitKey(1)
+        except cv2.error:
+            # Ignore l'erreur si pas d'interface graphique (SSH)
+            pass
 
         return objet_detecte
 
     def release(self):
-        self.cap.release()
+        if self.cap.isOpened():
+            self.cap.release()
         cv2.destroyAllWindows()

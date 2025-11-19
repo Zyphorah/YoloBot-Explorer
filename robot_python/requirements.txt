@@ -14,3 +14,6 @@ Adafruit_PCA9685
 
 # Bluetooth
 pybluez
+bless
+
+# picamera2
