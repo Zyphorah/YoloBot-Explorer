@@ -7,7 +7,8 @@ from moteur.dc import Dc
 class FacadeNavigation:
 
     def tourner_angle_droit(self, angle=90):
-        duree = self.duree(angle)
+        duree = 1.0
+        # self.duree = self.duree(duree)
         
         self.moteurA.tourner_gauche() 
         self.moteurB.tourner_droite()  
@@ -15,7 +16,7 @@ class FacadeNavigation:
         self.arreter()
     
     def tourner_angle_gauche(self, angle=90):
-        duree = self.duree(angle)
+        duree = 1.0
         
         self.moteurA.tourner_droite()  
         self.moteurB.tourner_gauche()  

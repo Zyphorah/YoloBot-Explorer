@@ -17,6 +17,7 @@ def main():
 
     # 2. Initialisation de la Navigation et du Servo
     nav = FacadeNavigation()
+
     servo_camera = Servo()
     servo_camera.tourner(90) # Position centrale par défaut
 
@@ -37,8 +38,8 @@ def main():
     print("En attente de commandes BLE ou de détection...")
 
     # Variables d'état
-    mode_detection = False
-    mode_autonome = False
+    mode_detection = True
+    mode_autonome = True
 
     try:
         while True:
@@ -121,9 +122,16 @@ def main():
     finally:
         # Nettoyage propre des ressources
         print("Nettoyage des ressources...")
-        ble.stop()
-        nav.cleanup()
-        camera.release()
+        if 'ble' in locals():
+            ble.stop()
+        if 'nav' in locals():
+            nav.cleanup()
+        if 'camera' in locals():
+            try:
+                camera.release()
+            except Exception:
+                # Ignorer les erreurs OpenCV (ex: environnement headless sans GUI)
+                pass
         print("Terminé.")
 
 if __name__ == "__main__":
