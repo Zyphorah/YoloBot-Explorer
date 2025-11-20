@@ -1,47 +1,74 @@
 import asyncio
 import threading
+import logging
+import random
+from bluezero import adapter
+from bluezero import peripheral
 
-# from bleak import BleakServer, BleakGATTCharacteristic
-from bless import (
-    BlessServer,
-    BlessGATTCharacteristic,
-    GATTCharacteristicProperties,
-    GATTAttributePermissions,
-)
-
-# --- Configuration des UUIDs (Identifiants uniques) ---
-# Vous devrez utiliser ces mêmes UUIDs dans votre application Flutter
-SERVICE_UUID = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD"
-CHAR_RX_UUID = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"  # Pour recevoir (App -> Robot)
-CHAR_TX_UUID = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021C"  # Pour envoyer (Robot -> App)
+# --- Configuration des UUIDs ---
+# UUIDs définis pour la nouvelle librairie bluezero
+BOT_SERVICE_PRINCIPAL = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
+BOT_CARACTERISTIQUE_COMMANDES = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B'
 
 
 class BLEService:
-    def __init__(self, device_name: str = "RobotBLEDevice"):
+    def __init__(self, device_name: str = "Robot 1"):
         self.device_name = device_name
-        self.server = None
-        self.loop = None
         self.running = False
 
         # Buffer pour stocker la dernière commande reçue
         self.derniere_commande = None
         self.command_lock = threading.Lock()
 
-        # Thread pour gérer la boucle asynchrone du BLE
-        self.thread = threading.Thread(target=self._run_async_loop)
-        self.thread.daemon = True  # Le thread se ferme si le programme principal quitte
+        # Configuration Bluezero
+        self.logger = logging.getLogger('localGATT')
+        self.logger.setLevel(logging.DEBUG)
+
+        try:
+            # Get the default adapter address
+            self.adapter_address = list(adapter.Adapter.available())[0].address
+            print(f'[BLE] Initialisation du périphérique BLE sur {self.adapter_address}')
+        except IndexError:
+            print("[BLE] Erreur: Aucun adaptateur Bluetooth trouvé.")
+            self.adapter_address = None
+            return
+
+        # Création du périphérique BLE
+        self.bot_monitor = peripheral.Peripheral(self.adapter_address,
+                                            local_name=self.device_name,
+                                            appearance=1344)
+        
+        # Add service
+        self.bot_monitor.add_service(srv_id=1, uuid=BOT_SERVICE_PRINCIPAL, primary=True)
+        
+        # Add characteristic
+        self.bot_monitor.add_characteristic(srv_id=1, chr_id=1, uuid=BOT_CARACTERISTIQUE_COMMANDES,
+                                       value=[], notifying=False,
+                                       flags=['write', 'write-without-response', 'read'],
+                                       read_callback=self.read_value,
+                                       write_callback=self.write_value,
+                                       notify_callback=None
+                                       )
+
+        # Thread pour gérer la boucle (publish est bloquant)
+        self.thread = threading.Thread(target=self._run_loop)
+        self.thread.daemon = True
 
     def start(self):
         """Démarre le service BLE dans un thread séparé."""
+        if not hasattr(self, 'bot_monitor'):
+            print("[BLE] Service non initialisé correctement.")
+            return
+            
         self.running = True
         self.thread.start()
 
     def stop(self):
         """Arrête le service BLE."""
         self.running = False
-        if self.loop:
-            self.loop.call_soon_threadsafe(self.loop.stop)
-        self.thread.join()
+        # Bluezero ne s'arrête pas facilement depuis un autre thread, 
+        # mais comme c'est un daemon thread, il se fermera avec le programme principal.
+        pass
 
     def obtenir_derniere_commande(self):
         """Retourne la dernière commande reçue et la réinitialise."""
@@ -51,61 +78,41 @@ class BLEService:
         return commande
 
     def send_status(self, message: str):
-        """Envoie un statut à l'application Flutter."""
-        if self.server and self.loop:
-            data = message.encode("utf-8")
-            asyncio.run_coroutine_threadsafe(
-                self.server.write_request(CHAR_TX_UUID, data), self.loop
-            )
+        """Envoie un statut."""
+        # Note: La configuration fournie utilise 'read' sur demande plutôt que 'notify'.
+        # Cette fonction est gardée pour compatibilité mais ne fait rien dans cette version.
+        pass
 
-    def _run_async_loop(self):
-        """Fonction interne exécutée par le thread pour gérer la boucle asynchrone BLE."""
-        self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_until_complete(self._init_server())
-        self.loop.run_forever()
-
-    async def _init_server(self):
-        """Initialise le serveur BLE avec les services et caractéristiques."""
-        self.server = BlessServer(self.device_name, loop=self.loop)
-
-        # Ajouter le service principal
-        await self.server.add_new_service(SERVICE_UUID)
-
-        # Caractéristique pour recevoir des commandes (App -> Robot)
-        await self.server.add_new_characteristic(
-            service_uuid=SERVICE_UUID,
-            char_uuid=CHAR_RX_UUID,
-            properties=GATTCharacteristicProperties.write
-            | GATTCharacteristicProperties.write_without_response,
-            value=None,
-            permissions=GATTAttributePermissions.writeable,
-        )
-
-        # Caractéristique pour envoyer des statuts (Robot -> App)
-        await self.server.add_new_characteristic(
-            service_uuid=SERVICE_UUID,
-            char_uuid=CHAR_TX_UUID,
-            properties=GATTCharacteristicProperties.read | GATTCharacteristicProperties.notify,
-            value=b"Status: Ready",
-            permissions=GATTAttributePermissions.readable,
-        )
-
-        # Définir le callback pour les écritures sur la caractéristique RX
-        self.server.set_write_callback(CHAR_RX_UUID, self._on_write)
-
-        # Démarrer le serveur
-        await self.server.start()
-        print(f"[BLE] Advertising démarré sur {self.device_name}...")
-        print(f"[BLE] Prêt à recevoir sur {CHAR_RX_UUID}")
-    
-    def _on_write(self, char: BlessGATTCharacteristic, value: bytearray):
-        """Callback appelé lorsqu'une commande est reçue via la l'application Flutter."""
+    def _run_loop(self):
+        """Fonction interne exécutée par le thread."""
         try:
-            commande = value.decode("utf-8").strip()
-            print(f"[BLE] Commande reçue: {commande}")
-            with self.command_lock:
-                self.derniere_commande = commande
-
+            print(f"[BLE] Advertising démarré sur {self.device_name}...")
+            self.bot_monitor.publish()
         except Exception as e:
-            print(f"[BLE] Erreur lors du décodage de la commande: {e}")
+            print(f"[BLE] Erreur dans la boucle BLE: {e}")
+
+    def write_value(self, value, options):
+        """Callback appelé lors d'une écriture BLE."""
+        # print(f"Write request received: {value}")	
+        try:
+            # Bluezero peut passer une liste d'entiers ou des bytes selon la version/contexte
+            if isinstance(value, list):
+                data = bytes(value)
+            else:
+                data = value
+                
+            cmd_str = data.decode("utf-8").strip()
+            print(f"[BLE] Commande reçue: {cmd_str}")
+            
+            with self.command_lock:
+                self.derniere_commande = cmd_str
+                
+        except Exception as e:
+            print(f"[BLE] Erreur de décodage: {e}")
+
+    def read_value(self): 
+        """Callback appelé lors d'une lecture BLE."""
+        print(f"[BLE] Read request received")
+        # Logique aléatoire demandée
+        cpu_value = random.randrange(3200, 5310, 10) / 100
+        return list(int(cpu_value * 100).to_bytes(2, byteorder='little', signed=True))

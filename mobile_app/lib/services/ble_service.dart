@@ -3,54 +3,30 @@ import 'dart:convert';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 
+import '../utils/constants.dart';
+
 class BleService {
   // --- Singleton Pattern (Instance unique) ---
   static final BleService _instance = BleService._internal();
   factory BleService() => _instance;
   BleService._internal();
 
-  // --- UUIDs ---
-  final String _serviceUuid = "A07498CA-AD5B-474E-940D-16F1FBE7E8CD";
-  final String _charRxUuid = "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B"; // Envoi
-  final String _charTxUuid =
-      "51FF12BB-3ED8-46E5-B4F9-D64E2FEC021C"; // Réception
-
   BluetoothDevice? _connectedDevice;
-  BluetoothCharacteristic? _rxCharacteristic; // Pour écrire
-// Pour écouter
+  BluetoothCharacteristic? _commandCharacteristic;
 
-  // Streams pour mettre à jour l'UI
-  final _scanResultsController = StreamController<List<ScanResult>>.broadcast();
-  final _statusController =
-      StreamController<String>.broadcast(); // Messages du robot
+  // Stream for scan results
+  Stream<List<ScanResult>> get scanResults => FlutterBluePlus.scanResults;
+
+  // Stream for connection state
   final _connectionStateController =
       StreamController<BluetoothConnectionState>.broadcast();
-
-  // Getters pour l'UI
-  Stream<List<ScanResult>> get scanResults => _scanResultsController.stream;
-  Stream<String> get statusStream => _statusController.stream;
   Stream<BluetoothConnectionState> get connectionState =>
       _connectionStateController.stream;
-  BluetoothDevice? get currentDevice => _connectedDevice;
 
-  /// Initialisation (optionnel, pour log ou setup)
-  void init() {
-    FlutterBluePlus.adapterState.listen((state) {
-      print("État adaptateur Bluetooth: $state");
-    });
-  }
+  BluetoothDevice? get connectedDevice => _connectedDevice;
 
   Future<void> startScan() async {
-    print("Démarrage du scan...");
-
-    FlutterBluePlus.scanResults.listen((results) {
-      _scanResultsController.add(results);
-    });
-
-    await FlutterBluePlus.startScan(
-      timeout: const Duration(seconds: 5),
-      withServices: [Guid(_serviceUuid)],
-    );
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
   }
 
   Future<void> stopScan() async {
@@ -58,83 +34,57 @@ class BleService {
   }
 
   Future<void> connect(BluetoothDevice device) async {
-    await stopScan();
+    await device.connect(
+      timeout: const Duration(seconds: 10),
+      license: License.free,
+    );
+    _connectedDevice = device;
 
-    try {
-      await device.connect(autoConnect: true, license: License.free);
-      _connectedDevice = device;
-
-      device.connectionState.listen((state) {
-        _connectionStateController.add(state);
-        if (state == BluetoothConnectionState.disconnected) {
-          print("Robot déconnecté");
-          _cleanUp();
-        }
-      });
-
-      print("Recherche des services...");
-      List<BluetoothService> services = await device.discoverServices();
-
-      for (var service in services) {
-        if (service.uuid.toString().toUpperCase() == _serviceUuid) {
-          print("Service robot trouvé !");
-
-          for (var char in service.characteristics) {
-            String uuid = char.uuid.toString().toUpperCase();
-
-            // Configuration RX (Écriture)
-            if (uuid == _charRxUuid) {
-              _rxCharacteristic = char;
-              print("Caractéristique RX liée.");
-            }
-
-            // Configuration TX (Lecture/Notification)
-            if (uuid == _charTxUuid) {
-              print("Caractéristique TX liée.");
-
-              // Activer les notifications pour recevoir les réponses du robot
-              await char.setNotifyValue(true);
-              char.lastValueStream.listen((value) {
-                String message = utf8.decode(value);
-                print("Reçu du robot: $message");
-                _statusController.add(message);
-              });
-            }
-          }
-        }
+    device.connectionState.listen((state) {
+      _connectionStateController.add(state);
+      if (state == BluetoothConnectionState.disconnected) {
+        _connectedDevice = null;
+        _commandCharacteristic = null;
       }
-    } catch (e) {
-      print("Erreur de connexion : $e");
-      _cleanUp();
-      rethrow;
-    }
+    });
+
+    await _discoverServices(device);
   }
 
   Future<void> disconnect() async {
     if (_connectedDevice != null) {
       await _connectedDevice!.disconnect();
-      _cleanUp();
+      _connectedDevice = null;
+      _commandCharacteristic = null;
     }
   }
 
-  Future<void> sendCommand(String command) async {
-    if (_rxCharacteristic == null) {
-      print("Erreur: Non connecté ou caractéristique RX introuvable.");
+  Future<void> _discoverServices(BluetoothDevice device) async {
+    List<BluetoothService> services = await device.discoverServices();
+    for (var service in services) {
+      if (service.uuid.toString() == AppConstants.BOT_SERVICE_UUID) {
+        for (var characteristic in service.characteristics) {
+          if (characteristic.uuid.toString() ==
+              AppConstants.BOT_CHARACTERISTIC_UUID) {
+            _commandCharacteristic = characteristic;
+            print("Characteristic found: ${characteristic.uuid}");
+          }
+        }
+      }
+    }
+  }
+
+  Future<void> sendCommand(String command, [dynamic parameter]) async {
+    if (_commandCharacteristic == null) {
+      print("Command characteristic not found");
       return;
     }
 
-    try {
-      List<int> bytes = utf8.encode(command);
-      // Écriture sans réponse (plus rapide pour le contrôle temps réel)
-      await _rxCharacteristic!.write(bytes, withoutResponse: true);
-      print("Commande envoyée: $command");
-    } catch (e) {
-      print("Erreur d'envoi: $e");
+    String fullCommand = command;
+    if (parameter != null) {
+      fullCommand += ':$parameter';
     }
-  }
-
-  void _cleanUp() {
-    _connectedDevice = null;
-    _rxCharacteristic = null;
+    List<int> bytes = utf8.encode(fullCommand);
+    await _commandCharacteristic!.write(bytes, withoutResponse: true);
   }
 }
