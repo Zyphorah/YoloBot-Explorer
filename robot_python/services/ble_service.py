@@ -93,14 +93,19 @@ class BLEService:
 
     def write_value(self, value, options):
         """Callback appelé lors d'une écriture BLE."""
-        # print(f"Write request received: {value}")	
         try:
-            # Bluezero peut passer une liste d'entiers ou des bytes selon la version/contexte
-            if isinstance(value, list):
-                data = bytes(value)
-            else:
+            # Log pour débogage
+            # print(f"[BLE DEBUG] Write received. Type: {type(value)}, Value: {value}")
+
+            # Conversion sécurisée en bytes
+            if isinstance(value, bytes):
                 data = value
-                
+            elif isinstance(value, str):
+                data = value.encode('utf-8')
+            else:
+                # Gère list, dbus.Array, etc.
+                data = bytes(list(value))
+
             cmd_str = data.decode("utf-8").strip()
             print(f"[BLE] Commande reçue: {cmd_str}")
             
@@ -108,7 +113,7 @@ class BLEService:
                 self.derniere_commande = cmd_str
                 
         except Exception as e:
-            print(f"[BLE] Erreur de décodage: {e}")
+            print(f"[BLE] Erreur de traitement commande: {e}, Value: {value}")
 
     def read_value(self): 
         """Callback appelé lors d'une lecture BLE."""

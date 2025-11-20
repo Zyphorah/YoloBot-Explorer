@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 
 class Stop extends StatefulWidget {
   final bool initialStopping;
-  const Stop({Key? key, this.initialStopping = false}) : super(key: key);
+  final VoidCallback onStop;
+
+  const Stop({
+    Key? key,
+    this.initialStopping = false,
+    required this.onStop,
+  }) : super(key: key);
 
   @override
   State<Stop> createState() => _StopState();
@@ -24,6 +30,7 @@ class _StopState extends State<Stop> {
       child: GestureDetector(
         onTapDown: (_) {
           setState(() => isStopping = true);
+          widget.onStop();
         },
         onTapUp: (_) {
           setState(() => isStopping = false);

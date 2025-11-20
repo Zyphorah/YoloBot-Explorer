@@ -5,11 +5,13 @@ import 'directional_button.dart';
 class LeftRightUpDownDirection extends StatelessWidget {
   bool isStopping;
   void Function(VoidCallback fn) setState;
+  final Function(String) onCommand;
 
   LeftRightUpDownDirection({
     Key? key,
     required this.isStopping,
     required this.setState,
+    required this.onCommand,
   }) : super(key: key);
 
   @override
@@ -29,7 +31,7 @@ class LeftRightUpDownDirection extends StatelessWidget {
                   icon: Icons.arrow_upward,
                   label: 'AVANCER',
                   onPressed: () {
-                    print('Avancer');
+                    onCommand('avancer');
                   },
                 ),
                 const SizedBox(height: 16),
@@ -40,14 +42,14 @@ class LeftRightUpDownDirection extends StatelessWidget {
                       icon: Icons.arrow_left,
                       label: 'GAUCHE',
                       onPressed: () {
-                        print('Tourner à gauche');
+                        onCommand('gauche');
                       },
                     ),
                     DirectionalButton(
                       icon: Icons.arrow_right,
                       label: 'DROITE',
                       onPressed: () {
-                        print('Tourner à droite');
+                        onCommand('droite');
                       },
                     ),
                   ],
@@ -57,7 +59,7 @@ class LeftRightUpDownDirection extends StatelessWidget {
                   icon: Icons.arrow_downward,
                   label: 'RECULER',
                   onPressed: () {
-                    print('Reculer');
+                    onCommand('reculer');
                   },
                 ),
                 const SizedBox(height: 20),

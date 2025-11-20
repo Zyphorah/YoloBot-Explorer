@@ -3,6 +3,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart'; // Nécessaire pour les permissions
 
 import '../services/ble_service.dart';
+import 'manual_command.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -47,7 +48,7 @@ class _ScanScreenState extends State<ScanScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Recherche du Robot")),
+      appBar: AppBar(title: const Text("Recherche du Robot (v4)")),
       body: Column(
         children: [
           const SizedBox(height: 20),
@@ -96,10 +97,16 @@ class _ScanScreenState extends State<ScanScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text("Connecté à $deviceName"),
+                                  content: Text("Connecté à $deviceName (v3)"),
                                 ),
                               );
-                              // Ici vous pourrez naviguer vers l'écran de contrôle
+                              // Navigate to ManualCommand screen
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const ManualCommand(),
+                                ),
+                              );
                             }
                           },
                         ),

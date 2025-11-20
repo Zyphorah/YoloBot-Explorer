@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+
 import '../utils/constants.dart';
 
 class BleService {
@@ -35,13 +37,17 @@ class BleService {
   }
 
   Future<void> connect(BluetoothDevice device) async {
-    // Explicitly set autoConnect to false and mtu to null
-    await device.connect(
-      timeout: const Duration(seconds: 10),
-      autoConnect: false,
-      mtu: null,
-      license: License.free,
+    // Explicitly set autoConnect to false and mtu to null (v4)
+    print(
+      "DEBUG: Attempting to connect with autoConnect: false, mtu: null (v4)",
     );
+    await Future.delayed(const Duration(milliseconds: 200));
+    try {
+      await device.connect(autoConnect: false, license: License.free);
+    } catch (e) {
+      print("DEBUG: Connection failed with error: $e");
+      rethrow;
+    }
     _connectedDevice = device;
 
     device.connectionState.listen((state) {
