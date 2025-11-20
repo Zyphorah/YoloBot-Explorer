@@ -11,6 +11,7 @@ def test_picamera2():
         picam2 = Picamera2()
         
         # Configuration de la caméra (résolution, format)
+        # config2 = picam2.create_still_configuration(transform=Transform.vflip)
         config = picam2.create_preview_configuration(main={"size": (640, 480), "format": "BGR888"})
         picam2.configure(config)
         
