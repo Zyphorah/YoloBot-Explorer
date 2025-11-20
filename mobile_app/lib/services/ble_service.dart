@@ -29,7 +29,7 @@ class BleService {
   BluetoothDevice? get connectedDevice => _connectedDevice;
 
   Future<void> startScan() async {
-    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
+    await FlutterBluePlus.startScan(timeout: const Duration(seconds: 15));
   }
 
   Future<void> stopScan() async {
@@ -37,17 +37,17 @@ class BleService {
   }
 
   Future<void> connect(BluetoothDevice device) async {
-    // Explicitly set autoConnect to false and mtu to null (v4)
     print(
-      "DEBUG: Attempting to connect with autoConnect: false, mtu: null (v4)",
+      "DEBUG: Attempting to connect with autoConnect: false, mtu: null on device ${device.remoteId} ${device.advName}",
     );
-    await Future.delayed(const Duration(milliseconds: 200));
-    try {
-      await device.connect(autoConnect: false, license: License.free);
-    } catch (e) {
-      print("DEBUG: Connection failed with error: $e");
-      rethrow;
-    }
+
+    await device.connect(
+      timeout: const Duration(seconds: 10),
+      autoConnect: false,
+      //   mtu: null,
+      license: License.free,
+    );
+
     _connectedDevice = device;
 
     device.connectionState.listen((state) {
@@ -57,6 +57,12 @@ class BleService {
         _commandCharacteristic = null;
       }
     });
+
+    // await device.connectionState
+    //     .where((val) => val == BluetoothConnectionState.connected)
+    //     .first;
+
+    // await device.requestMtu(512); // Replace 512 with your desired MTU size
 
     await _discoverServices(device);
   }
