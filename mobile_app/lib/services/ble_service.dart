@@ -1,14 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-
 import '../utils/constants.dart';
 
 class BleService {
-  // --- Singleton Pattern (Instance unique) ---
   static final BleService _instance = BleService._internal();
-  factory BleService() => _instance;
+
+  factory BleService() {
+    return _instance;
+  }
+
   BleService._internal();
 
   BluetoothDevice? _connectedDevice;
@@ -34,8 +35,11 @@ class BleService {
   }
 
   Future<void> connect(BluetoothDevice device) async {
+    // Explicitly set autoConnect to false and mtu to null
     await device.connect(
       timeout: const Duration(seconds: 10),
+      autoConnect: false,
+      mtu: null,
       license: License.free,
     );
     _connectedDevice = device;
