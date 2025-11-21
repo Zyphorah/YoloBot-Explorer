@@ -1,3 +1,4 @@
+// Source du code https://pub.dev/packages/speech_to_text
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
