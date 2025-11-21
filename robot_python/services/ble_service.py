@@ -9,6 +9,7 @@ from bluezero import peripheral
 # UUIDs définis pour la nouvelle librairie bluezero
 BOT_SERVICE_PRINCIPAL = 'A07498CA-AD5B-474E-940D-16F1FBE7E8CD'
 BOT_CARACTERISTIQUE_COMMANDES = '51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B'
+BOT_CARACTERISTIQUE_STATUT = '2F8C4D2A-1D3B-4F5A-9C6E-7B8A9B0C1D2E'
 
 
 class BLEService:
@@ -21,8 +22,12 @@ class BLEService:
         self.command_lock = threading.Lock()
 
         # Configuration Bluezero
+        self.console_handler = logging.StreamHandler()
+        self.console_handler.setLevel(logging.DEBUG)
+
         self.logger = logging.getLogger('localGATT')
-        self.logger.setLevel(logging.DEBUG)
+        self.logger.addHandler(self.console_handler)
+        print("[BLE] Configuration du logger terminée.")
 
         try:
             # Get the default adapter address
@@ -45,6 +50,14 @@ class BLEService:
         self.bot_monitor.add_characteristic(srv_id=1, chr_id=1, uuid=BOT_CARACTERISTIQUE_COMMANDES,
                                        value=[], notifying=False,
                                        flags=['write', 'write-without-response', 'read'],
+                                       read_callback=self.read_value,
+                                       write_callback=self.write_value,
+                                       notify_callback=None
+                                       )
+
+        self.bot_monitor.add_characteristic(srv_id=1, chr_id=2, uuid=BOT_CARACTERISTIQUE_STATUT,
+                                       value=[], notifying=True,
+                                       flags=['read', 'notify', 'read'],
                                        read_callback=self.read_value,
                                        write_callback=self.write_value,
                                        notify_callback=None
