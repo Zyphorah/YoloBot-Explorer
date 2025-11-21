@@ -1,11 +1,104 @@
-from moteur.servo import Servo
+import sys
+import os
+import time
+
+# Imports des modules du projet
+from services.ble_service import BLEService
 from navigation.facade_navigation import FacadeNavigation
-##pybluez
+from moteur.servo import Servo
+from vision.camera import Camera
 
-facade_nav = FacadeNavigation()
-camera = Servo()
+def main():
+    print("--- Initialisation du Robot ---")
 
-camera.tourner(180)
-camera.tourner(90)
-camera.tourner(0)
+    # 1. Initialisation du Bluetooth
+    ble = BLEService()
+    ble.start()
+    print("Service BLE démarré.")
+
+    # 2. Initialisation de la Navigation et du Servo
+    nav = FacadeNavigation()
+    servo_camera = Servo()
+    servo_camera.tourner(90) # Position centrale par défaut
+
+    # 3. Initialisation de la Caméra
+    # On cherche le modèle YOLO (soit dans le dossier courant, soit au-dessus)
+    model_path = "../yolov8n.pt"
+    if not os.path.exists(model_path):
+        model_path = "yolov8n.pt"
+    
+    print(f"Chargement du modèle IA depuis {model_path}...")
+    try:
+        camera = Camera(model_path)
+    except Exception as e:
+        print(f"Erreur caméra: {e}")
+        return
+
+    print("--- Robot Prêt ---")
+    print("En attente de commandes BLE ou de détection...")
+
+    try:
+        while True:
+            # --- A. GESTION BLUETOOTH ---
+            commande = ble.obtenir_derniere_commande()
+            
+            if commande:
+                print(f"[BLE] Commande reçue : {commande}")
+                
+                # Logique de mouvement simple
+                if "avancer" in commande:
+                    # Attention : votre méthode avancer() actuelle est bloquante (boucle while)
+                    # Cela mettra en pause la caméra tant que le robot avance.
+                    nav.avancer() 
+                elif "reculer" in commande:
+                    nav.reculer()
+                    time.sleep(1)
+                    nav.arreter()
+                elif "gauche" in commande:
+                    nav.tourner_angle_gauche(90)
+                elif "droite" in commande:
+                    nav.tourner_angle_droit(90)
+                elif "stop" in commande:
+                    nav.arreter()
+                
+                # Commandes Servo Caméra
+                elif "cam_gauche" in commande:
+                    servo_camera.tourner(180)
+                elif "cam_droite" in commande:
+                    servo_camera.tourner(0)
+                elif "cam_centre" in commande:
+                    servo_camera.tourner(90)
+
+            # --- B. GESTION CAMÉRA ---
+            # On cherche une personne (ou changez pour "bottle", "cell phone", etc.)
+            objet_detecte = camera.detecter_objets("person")
+
+            if objet_detecte:
+                msg = f"Vu: {objet_detecte['classe']} ({objet_detecte['position']})"
+                print(msg)
+                
+                # Envoyer l'info au téléphone via Bluetooth
+                ble.send_status(msg)
+
+                # Exemple d'interaction : Si l'objet est à gauche, on pourrait tourner le robot
+                # if objet_detecte['position'] == 'gauche':
+                #     nav.moteurA.tourner_droite() # Tourner un peu sur place
+
+            # Petite pause pour ne pas surcharger le CPU (si la caméra n'a pas son propre waitKey)
+            # time.sleep(0.01) 
+
+    except KeyboardInterrupt:
+        print("\nArrêt du programme...")
+    except Exception as e:
+        print(f"\nErreur inattendue : {e}")
+    finally:
+        # Nettoyage propre des ressources
+        print("Nettoyage des ressources...")
+        ble.stop()
+        nav.cleanup()
+        camera.release()
+        print("Terminé.")
+
+if __name__ == "__main__":
+    main()
 
