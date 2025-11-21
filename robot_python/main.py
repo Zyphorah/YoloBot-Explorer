@@ -1,5 +1,6 @@
 import os
 import time
+import threading
 
 # Imports des modules du projet
 from services.ble_service import BLEService
@@ -7,12 +8,17 @@ from navigation.facade_navigation import FacadeNavigation
 from moteur.servo import Servo
 from vision.camera import Camera
 
+def demarrer_ble(ble_service):
+    ble_service.start()
+    print("Service BLE démarré (thread séparé).")
+
 def main():
     print("--- Initialisation du Robot ---")
 
     # 1. Initialisation du Bluetooth
     ble = BLEService()
-    ble.start()
+    ble_thread = threading.Thread(target=demarrer_ble, args=(ble,), daemon=True)
+    ble_thread.start()
     print("Service BLE démarré.")
 
     # 2. Initialisation de la Navigation et du Servo

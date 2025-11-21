@@ -109,7 +109,7 @@ class _ScanScreenState extends State<ScanScreen> {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text("Connecté à $deviceName (v3)"),
+                                  content: Text("Connecté à $deviceName"),
                                 ),
                               );
                               Navigator.push(
