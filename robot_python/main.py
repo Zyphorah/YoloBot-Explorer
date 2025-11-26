@@ -24,12 +24,9 @@ def main():
     print(f"Chargement du modèle IA depuis {model_path}...")
     try:
         camera = Camera(model_path)
-        camera = Camera(model_path)
-        # camera.start_thread() # Threading désactivé sur demande utilisateur
     except Exception as e:
         print(f"Erreur caméra: {e}")
-        camera = None
-        # On continue même sans caméra pour permettre le pilotage manuel
+        return
 
     # 2. Initialisation du Bluetooth
     ble = BLEService()
@@ -105,12 +102,10 @@ def main():
                     print("Mode Autonome DÉSACTIVÉ")
 
             # --- B. GESTION CAMÉRA ---
-            if (mode_detection or mode_autonome) and camera is not None:
+            if mode_detection or mode_autonome:
                 # On cherche une personne (ou changez pour "bottle", "cell phone", etc.)
                 objet_detecte = camera.detecter_objets("person")
-                # print(objet_detecte) # Debug optionnel
-                
-                # print(objet_detecte) # Debug optionnel
+                print(objet_detecte)
 
                 if objet_detecte:
                     msg = f"Vu: {objet_detecte['classe']} ({objet_detecte['position']})"
@@ -162,7 +157,7 @@ def main():
             ble.stop()
         if 'nav' in locals():
             nav.cleanup()
-        if 'camera' in locals() and camera is not None:
+        if 'camera' in locals():
             try:
                 camera.release()
             except Exception:

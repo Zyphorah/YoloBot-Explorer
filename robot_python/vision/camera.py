@@ -1,32 +1,32 @@
 from time import sleep
 import cv2
 import numpy as np
-from ultralytics import YOLO, YOLOWorld
-
-# Gestion de l'import de Picamera2
-try:
-    from picamera2 import Picamera2
-except ImportError:
-    Picamera2 = None
-    print("ERREUR: La librairie 'picamera2' n'est pas installée.")
+from ultralytics import YOLO
+from picamera2 import Picamera2
 
 class Camera:
     def __init__(self, model_path: str) :
-        if Picamera2 is None:
-            raise RuntimeError("Impossible de démarrer : Picamera2 manquant.")
-
+        print("Initialisation de Picamera2...")
         try:
-            print("Initialisation de Picamera2...")
             self.picam2 = Picamera2()
             
             # Configuration : 640x480 en format BGR888 (format natif OpenCV)
+            # Identique à test_picamera2.py
             config = self.picam2.create_preview_configuration(main={"size": (640, 480), "format": "BGR888"})
             self.picam2.configure(config)
             self.picam2.start()
+            
+            # Initialisation explicite de la fenêtre pour éviter les erreurs de thread Qt plus tard
+            try:
+                cv2.namedWindow('Detection Camera', cv2.WINDOW_NORMAL)
+            except Exception as e:
+                print(f"Attention: Impossible d'initialiser l'interface graphique ({e})")
+
             print("Caméra démarrée avec succès.")
         except Exception as e:
             print(f"ERREUR CRITIQUE lors de l'ouverture de la caméra : {e}")
             self.picam2 = None
+            raise e # On relève l'exception pour ne pas démarrer le robot sans caméra si c'est critique
 
         self.model = YOLO(model_path)
         # self.model_world = YOLOWorld(model_world)
@@ -41,6 +41,12 @@ class Camera:
         try:
             # Capture d'une frame directement en format compatible OpenCV (numpy array)
             frame = self.picam2.capture_array()
+            # DEBUG: Vérifier si l'image est noire
+            if frame is not None:
+                moyenne = np.mean(frame)
+                # print(f"DEBUG: Frame shape={frame.shape}, Mean={moyenne:.2f}")
+                if moyenne == 0:
+                    print("ATTENTION: L'image capturée est totalement NOIRE.")
         except Exception as e:
             print(f"Erreur de capture : {e}")
             return None
@@ -78,9 +84,10 @@ class Camera:
         try:
             cv2.imshow('Detection Camera', frame)
             cv2.waitKey(1)
-        except cv2.error:
-            # Ignore l'erreur si pas d'interface graphique (SSH)
-            pass
+        except Exception as e:
+            # On attrape tout pour éviter que le robot ne crash à cause de l'affichage
+            # (Erreurs Qt, thread, ou absence d'écran)
+            print(f"Erreur affichage: {e}")
 
         return objet_detecte
 
