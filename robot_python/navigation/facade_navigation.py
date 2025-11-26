@@ -7,8 +7,7 @@ from moteur.dc import Dc
 class FacadeNavigation:
 
     def tourner_angle_droit(self, angle=90):
-        duree = 1.0
-        # self.duree = self.duree(duree)
+        duree = (angle / 90.0) * 1.0
         
         self.moteurA.tourner_gauche() 
         self.moteurB.tourner_droite()  
@@ -16,12 +15,20 @@ class FacadeNavigation:
         self.arreter()
     
     def tourner_angle_gauche(self, angle=90):
-        duree = 1.0
+        duree = (angle / 90.0) * 1.0
         
         self.moteurA.tourner_droite()  
         self.moteurB.tourner_gauche()  
         time.sleep(duree)
         self.arreter()
+
+    def tourner_droite(self):
+        self.moteurA.tourner_gauche()
+        self.moteurB.tourner_droite()
+
+    def tourner_gauche(self):
+        self.moteurA.tourner_droite()
+        self.moteurB.tourner_gauche()
 
     def __init__(self):
         # GPIO pins en mode BCM (converti de BOARD)
@@ -50,18 +57,14 @@ class FacadeNavigation:
     def avancer(self):
         self.moteurA.tourner_droite()
         self.moteurB.tourner_droite()
-        try:
-            while True:
-                if self.collision.detecter_collision():
-                    self.moteurA.arreter()
-                    self.moteurB.arreter()
-                    print("Collision détectée ! Moteurs arrêtés.")
-                    return True
-                time.sleep(0.1)
-        except KeyboardInterrupt:
+
+    def verifier_collision(self):
+        if self.collision.detecter_collision():
             self.moteurA.arreter()
             self.moteurB.arreter()
-            return False
+            print("Collision détectée ! Moteurs arrêtés.")
+            return True
+        return False
 
     def reculer(self):
         self.moteurA.tourner_gauche()

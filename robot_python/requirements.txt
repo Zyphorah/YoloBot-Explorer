@@ -12,8 +12,10 @@ fastapi[standard]
 adafruit-circuitpython-pca9685
 Adafruit_PCA9685
 
-# Bluetooth
-pybluez
-bless
+# # Bluetooth
+# pybluez
+# bless
+bluezero
+
 
 # picamera2

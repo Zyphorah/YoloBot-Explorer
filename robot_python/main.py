@@ -15,18 +15,7 @@ def demarrer_ble(ble_service):
 def main():
     print("--- Initialisation du Robot ---")
 
-    # 1. Initialisation du Bluetooth
-    ble = BLEService()
-    ble.start()
-    print("Service BLE démarré.")
-
-    # 2. Initialisation de la Navigation et du Servo
-    nav = FacadeNavigation()
-
-    servo_camera = Servo()
-    servo_camera.tourner(90) # Position centrale par défaut
-
-    # 3. Initialisation de la Caméra
+    # 1. Initialisation de la Caméra (Doit être fait AVANT le BLE pour éviter les conflits de thread Qt/GLib)
     # On cherche le modèle YOLO (soit dans le dossier courant, soit au-dessus)
     model_path = "../yolov8n.pt"
     if not os.path.exists(model_path):
@@ -35,9 +24,23 @@ def main():
     print(f"Chargement du modèle IA depuis {model_path}...")
     try:
         camera = Camera(model_path)
+        camera = Camera(model_path)
+        # camera.start_thread() # Threading désactivé sur demande utilisateur
     except Exception as e:
         print(f"Erreur caméra: {e}")
-        return
+        camera = None
+        # On continue même sans caméra pour permettre le pilotage manuel
+
+    # 2. Initialisation du Bluetooth
+    ble = BLEService()
+    ble.start()
+    print("Service BLE démarré.")
+
+    # 3. Initialisation de la Navigation et du Servo
+    nav = FacadeNavigation()
+
+    servo_camera = Servo()
+    servo_camera.tourner(90) # Position centrale par défaut
 
     print("--- Robot Prêt ---")
     print("En attente de commandes BLE ou de détection...")
@@ -45,6 +48,8 @@ def main():
     # Variables d'état
     mode_detection = True
     mode_autonome = True
+    action_courante = "stop" # Pour savoir si on recule ou avance
+    debut_rotation = 0 # Timestamp pour gérer la durée de rotation
 
     try:
         while True:
@@ -59,16 +64,21 @@ def main():
                     # Attention : votre méthode avancer() actuelle est bloquante (boucle while)
                     # Cela mettra en pause la caméra tant que le robot avance.
                     nav.avancer() 
+                    action_courante = "avancer"
                 elif "reculer" in commande:
                     nav.reculer()
-                    time.sleep(1)
-                    nav.arreter()
+                    action_courante = "reculer"
                 elif "gauche" in commande:
-                    nav.tourner_angle_gauche(90)
+                    nav.tourner_gauche()
+                    action_courante = "tourner_gauche_90"
+                    debut_rotation = time.time()
                 elif "droite" in commande:
-                    nav.tourner_angle_droit(90)
+                    nav.tourner_droite()
+                    action_courante = "tourner_droite_90"
+                    debut_rotation = time.time()
                 elif "stop" in commande:
                     nav.arreter()
+                    action_courante = "stop"
                     mode_autonome = False # Stop désactive aussi le mode autonome
                 
                 # Commandes Servo Caméra
@@ -95,9 +105,12 @@ def main():
                     print("Mode Autonome DÉSACTIVÉ")
 
             # --- B. GESTION CAMÉRA ---
-            if mode_detection or mode_autonome:
+            if (mode_detection or mode_autonome) and camera is not None:
                 # On cherche une personne (ou changez pour "bottle", "cell phone", etc.)
                 objet_detecte = camera.detecter_objets("person")
+                # print(objet_detecte) # Debug optionnel
+                
+                # print(objet_detecte) # Debug optionnel
 
                 if objet_detecte:
                     msg = f"Vu: {objet_detecte['classe']} ({objet_detecte['position']})"
@@ -110,12 +123,30 @@ def main():
                     if mode_autonome:
                         if objet_detecte['position'] == 'gauche':
                             nav.tourner_angle_gauche(15)
+                            if action_courante == "avancer":
+                                nav.avancer()
                         elif objet_detecte['position'] == 'droite':
                             nav.tourner_angle_droit(15)
+                            if action_courante == "avancer":
+                                nav.avancer()
                         elif objet_detecte['position'] == 'centre':
                             # Si c'est au centre, on pourrait avancer un peu
                             # nav.avancer() # Attention c'est bloquant pour l'instant
                             pass
+            
+            # --- C. GESTION ROTATION AUTOMATIQUE ---
+            if action_courante in ["tourner_gauche_90", "tourner_droite_90"]:
+                if time.time() - debut_rotation >= 1.0:
+                    print("Fin de rotation 90°, passage en mode AVANCER")
+                    nav.avancer()
+                    action_courante = "avancer"
+
+            # --- D. GESTION COLLISION ---
+            # On vérifie la collision à chaque tour de boucle pour arrêter le robot si nécessaire
+            # On ne vérifie PAS la collision si on recule (pour pouvoir se dégager d'un obstacle)
+            if action_courante != "reculer":
+                if nav.verifier_collision():
+                    action_courante = "stop"
 
             # Petite pause pour ne pas surcharger le CPU (si la caméra n'a pas son propre waitKey)
             # time.sleep(0.01) 
@@ -131,7 +162,7 @@ def main():
             ble.stop()
         if 'nav' in locals():
             nav.cleanup()
-        if 'camera' in locals():
+        if 'camera' in locals() and camera is not None:
             try:
                 camera.release()
             except Exception:

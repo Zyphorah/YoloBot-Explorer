@@ -53,10 +53,14 @@ class BleService {
     device.connectionState.listen((state) {
       _connectionStateController.add(state);
       if (state == BluetoothConnectionState.disconnected) {
+        print("Device disconnected");
         _connectedDevice = null;
         _commandCharacteristic = null;
       }
     });
+
+    // Wait for connection to stabilize
+    await Future.delayed(const Duration(milliseconds: 1000));
 
     // await device.connectionState
     //     .where((val) => val == BluetoothConnectionState.connected)
@@ -76,24 +80,56 @@ class BleService {
   }
 
   Future<void> _discoverServices(BluetoothDevice device) async {
-    List<BluetoothService> services = await device.discoverServices();
-    for (var service in services) {
-      if (service.uuid.toString() == AppConstants.BOT_SERVICE_UUID) {
-        for (var characteristic in service.characteristics) {
-          if (characteristic.uuid.toString() ==
-              AppConstants.BOT_CHARACTERISTIC_UUID) {
-            _commandCharacteristic = characteristic;
+    print("Starting service discovery for ${device.remoteId}...");
+    try {
+      List<BluetoothService> services = await device.discoverServices();
+      print("Discovered ${services.length} services");
+      for (var service in services) {
+        print("Service found: ${service.uuid}");
+        if (service.uuid.toString().toUpperCase() ==
+            AppConstants.BOT_SERVICE_UUID.toUpperCase()) {
+          for (var characteristic in service.characteristics) {
             print("Characteristic found: ${characteristic.uuid}");
+            if (characteristic.uuid.toString().toUpperCase() ==
+                AppConstants.BOT_CHARACTERISTIC_UUID.toUpperCase()) {
+              print(
+                "Properties: write=${characteristic.properties.write}, writeWithoutResponse=${characteristic.properties.writeWithoutResponse}",
+              );
+
+              // Only set if it supports writing
+              if (characteristic.properties.write ||
+                  characteristic.properties.writeWithoutResponse) {
+                _commandCharacteristic = characteristic;
+                print(
+                  "Target Characteristic found and set: ${characteristic.uuid}",
+                );
+              } else {
+                print(
+                  "Characteristic matches UUID but does not support write. Ignoring.",
+                );
+              }
+            }
           }
         }
       }
+    } catch (e) {
+      print("Error discovering services: $e");
     }
   }
 
   Future<void> sendCommand(String command, [dynamic parameter]) async {
-    if (_commandCharacteristic == null) {
-      print("Command characteristic not found");
+    if (_connectedDevice == null) {
+      print("Cannot send command: Device not connected");
       return;
+    }
+
+    if (_commandCharacteristic == null) {
+      print("Command characteristic not found. Attempting to rediscover...");
+      await _discoverServices(_connectedDevice!);
+      if (_commandCharacteristic == null) {
+        print("Command characteristic still not found.");
+        return;
+      }
     }
 
     String fullCommand = command;
@@ -101,6 +137,18 @@ class BleService {
       fullCommand += ':$parameter';
     }
     List<int> bytes = utf8.encode(fullCommand);
-    await _commandCharacteristic!.write(bytes, withoutResponse: true);
+
+    // Check if the characteristic supports writeWithoutResponse
+    bool canWriteWithoutResponse =
+        _commandCharacteristic!.properties.writeWithoutResponse;
+
+    try {
+      await _commandCharacteristic!.write(
+        bytes,
+        withoutResponse: canWriteWithoutResponse,
+      );
+    } catch (e) {
+      print("Error sending command: $e");
+    }
   }
 }
