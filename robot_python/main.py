@@ -47,6 +47,7 @@ def main():
     mode_autonome = True
     action_courante = "stop" # Pour savoir si on recule ou avance
     debut_rotation = 0 # Timestamp pour gérer la durée de rotation
+    objet_cible = "person" # Objet à détecter par défaut
 
     try:
         while True:
@@ -100,11 +101,21 @@ def main():
                     mode_autonome = False
                     nav.arreter()
                     print("Mode Autonome DÉSACTIVÉ")
+                
+                # Commandes Configuration
+                elif "set_object" in commande:
+                    # Format attendu: set_object:person
+                    try:
+                        _, new_target = commande.split(":")
+                        objet_cible = new_target.strip()
+                        print(f"Nouvelle cible de détection : {objet_cible}")
+                    except ValueError:
+                        print("Erreur format set_object. Attendu: set_object:classe")
 
             # --- B. GESTION CAMÉRA ---
             if mode_detection or mode_autonome:
-                # On cherche une personne (ou changez pour "bottle", "cell phone", etc.)
-                objet_detecte = camera.detecter_objets("person")
+                # On cherche l'objet cible
+                objet_detecte = camera.detecter_objets(objet_cible)
                 print(objet_detecte)
 
                 if objet_detecte:
