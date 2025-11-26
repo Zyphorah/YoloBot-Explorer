@@ -4,7 +4,9 @@ import 'menu_build_content/menu_build_content.dart';
 import 'menu_build_content/menu_logo.dart';
 
 class Menu extends StatefulWidget {
-  const Menu({super.key});
+  final VoidCallback onMenuAction;
+
+  const Menu({required this.onMenuAction, super.key});
 
   @override
   State<Menu> createState() => _MenuState();
@@ -81,6 +83,7 @@ class _MenuState extends State<Menu> with SingleTickerProviderStateMixin {
             staggeredController: _staggeredController,
             itemSlideIntervals: _itemSlideIntervals,
             menuTitles: _menuTitles,
+            onMenuAction: widget.onMenuAction,
           ),
         ],
       ),

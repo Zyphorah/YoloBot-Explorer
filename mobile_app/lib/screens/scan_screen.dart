@@ -5,7 +5,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:permission_handler/permission_handler.dart'; // Nécessaire pour les permissions
 
 import '../services/ble_service.dart';
-import 'manual_command.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -112,12 +111,7 @@ class _ScanScreenState extends State<ScanScreen> {
                                   content: Text("Connecté à $deviceName"),
                                 ),
                               );
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const ManualCommand(),
-                                ),
-                              );
+                              Navigator.pop(context);
                             }
                           },
                         ),

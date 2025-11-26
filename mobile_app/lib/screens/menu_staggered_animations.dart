@@ -9,7 +9,8 @@ class MenuStaggeredAnimations extends StatefulWidget {
   const MenuStaggeredAnimations({super.key});
 
   @override
-  State<MenuStaggeredAnimations> createState() => _MenuStaggeredAnimationsState();
+  State<MenuStaggeredAnimations> createState() =>
+      _MenuStaggeredAnimationsState();
 }
 
 class _MenuStaggeredAnimationsState extends State<MenuStaggeredAnimations>
@@ -51,8 +52,13 @@ class _MenuStaggeredAnimationsState extends State<MenuStaggeredAnimations>
           MenuBuildDrawer(
             drawerSlideController: _drawerSlideController,
             isDrawerClosed: _drawerControllerHelper.isDrawerClosed,
+            onMenuAction: () {
+              if (_drawerControllerHelper.isDrawerOpen() ||
+                  _drawerControllerHelper.isDrawerOpening()) {
+                _drawerControllerHelper.toggleDrawer();
+              }
+            },
           ),
-         
         ],
       ),
     );

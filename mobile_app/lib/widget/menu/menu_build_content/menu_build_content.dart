@@ -6,11 +6,13 @@ class MenuBuildContent extends StatelessWidget {
   final AnimationController staggeredController;
   final List<Interval> itemSlideIntervals;
   final List<String> menuTitles;
+  final VoidCallback onMenuAction;
 
   const MenuBuildContent({
     required this.staggeredController,
     required this.itemSlideIntervals,
     required this.menuTitles,
+    required this.onMenuAction,
     super.key,
   });
 
@@ -53,6 +55,7 @@ class MenuBuildContent extends StatelessWidget {
           staggeredController: staggeredController,
           itemSlideIntervals: itemSlideIntervals,
           menuTitles: menuTitles,
+          onMenuAction: onMenuAction,
         ),
       ],
     );

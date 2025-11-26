@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../screens/scan_screen.dart'; 
+import '../../../../screens/scan_screen.dart';
 import '../../../../screens/voice_command.dart';
 import '../../../../screens/return_to_state.dart';
 import '../../../../screens/settings/settings.dart';
@@ -8,11 +8,13 @@ class MenuBuildListItems extends StatelessWidget {
   final AnimationController staggeredController;
   final List<Interval> itemSlideIntervals;
   final List<String> menuTitles;
+  final VoidCallback onMenuAction;
 
   const MenuBuildListItems({
     required this.staggeredController,
     required this.itemSlideIntervals,
     required this.menuTitles,
+    required this.onMenuAction,
     super.key,
   });
 
@@ -50,6 +52,7 @@ class MenuBuildListItems extends StatelessWidget {
               color: Colors.transparent,
               child: InkWell(
                 onTap: () {
+                  onMenuAction();
                   if (i == 0) {
                     Navigator.push(
                       context,
