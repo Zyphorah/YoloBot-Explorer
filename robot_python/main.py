@@ -15,8 +15,6 @@ def demarrer_ble(ble_service):
 def main():
     print("--- Initialisation du Robot ---")
 
-    # 1. Initialisation de la Caméra (Doit être fait AVANT le BLE pour éviter les conflits de thread Qt/GLib)
-    # On cherche le modèle YOLO (soit dans le dossier courant, soit au-dessus)
     model_path = "../yolov8n.pt"
     if not os.path.exists(model_path):
         model_path = "yolov8n.pt"
@@ -28,26 +26,23 @@ def main():
         print(f"Erreur caméra: {e}")
         return
 
-    # 2. Initialisation du Bluetooth
     ble = BLEService()
     ble.start()
     print("Service BLE démarré.")
 
-    # 3. Initialisation de la Navigation et du Servo
     nav = FacadeNavigation()
 
     servo_camera = Servo()
-    servo_camera.tourner(90) # Position centrale par défaut
+    servo_camera.tourner(90) 
 
     print("--- Robot Prêt ---")
     print("En attente de commandes BLE ou de détection...")
 
-    # Variables d'état
     mode_detection = True
     mode_autonome = True
-    action_courante = "stop" # Pour savoir si on recule ou avance
-    debut_rotation = 0 # Timestamp pour gérer la durée de rotation
-    objet_cible = "person" # Objet à détecter par défaut
+    action_courante = "stop" 
+    debut_rotation = 0 
+    objet_cible = "person" 
 
     try:
         while True:
@@ -114,33 +109,63 @@ def main():
 
             # --- B. GESTION CAMÉRA ---
             if mode_detection or mode_autonome:
-                # On cherche l'objet cible
-                objet_detecte = camera.detecter_objets(objet_cible)
-                print(objet_detecte)
+                try:
+                    # On cherche l'objet cible
+                    objet_detecte = camera.detecter_objets(objet_cible)
+                    # print(objet_detecte) # Trop verbeux si None
 
-                if objet_detecte:
-                    msg = f"Vu: {objet_detecte['classe']} ({objet_detecte['position']})"
-                    print(msg)
-                    
-                    # Envoyer l'info au téléphone via Bluetooth
-                    ble.send_status(msg)
+                    if objet_detecte:
+                        msg = f"Vu: {objet_detecte['classe']} ({objet_detecte['position']})"
+                        print(msg)
+                        
+                        ble.send_status(msg)
 
-                    # Logique Autonome Simple
-                    if mode_autonome:
-                        if objet_detecte['position'] == 'gauche':
-                            nav.tourner_angle_gauche(15)
-                            if action_courante == "avancer":
-                                nav.avancer()
-                        elif objet_detecte['position'] == 'droite':
-                            nav.tourner_angle_droit(15)
-                            if action_courante == "avancer":
-                                nav.avancer()
-                        elif objet_detecte['position'] == 'centre':
-                            # Si c'est au centre, on pourrait avancer un peu
-                            # nav.avancer() # Attention c'est bloquant pour l'instant
-                            pass
+                        if mode_autonome:
+                            y1, y2 = objet_detecte['boite'][1], objet_detecte['boite'][3]
+                            hauteur_objet = y2 - y1
+                            hauteur_frame = 480
+                            
+                            SEUIL_PROXIMITE = 0.40 
+                            ratio_hauteur = hauteur_objet / hauteur_frame
+
+                            position = objet_detecte['position']
+
+                            if ratio_hauteur > SEUIL_PROXIMITE:
+                                if action_courante != "stop":
+                                    nav.arreter()
+                                    action_courante = "stop"
+                                    print(f"Cible trop proche ({ratio_hauteur:.2f}), arrêt.")
+                            
+                            elif position == 'gauche':
+                                if action_courante != "tourner_gauche":
+                                    nav.tourner_gauche()
+                                    action_courante = "tourner_gauche"
+                                    print("Cible à gauche -> Rotation Gauche")
+
+                            elif position == 'droite':
+                                if action_courante != "tourner_droite":
+                                    nav.tourner_droite()
+                                    action_courante = "tourner_droite"
+                                    print("Cible à droite -> Rotation Droite")
+
+                            elif position == 'centre':
+                                if action_courante != "avancer":
+                                    nav.avancer()
+                                    action_courante = "avancer"
+                                    print("Cible centrée -> Avancer")
+                    else:
+                        if mode_autonome and action_courante != "stop":
+                            nav.arreter()
+                            action_courante = "stop"
+                            print("Cible perdue -> Arrêt")
+                
+                except Exception as e:
+                    print(f"ERREUR dans la boucle autonome/caméra : {e}")
+                    import traceback
+                    traceback.print_exc()
+                    nav.arreter()
+                    action_courante = "stop"
             
-            # --- C. GESTION ROTATION AUTOMATIQUE ---
             if action_courante in ["tourner_gauche_90", "tourner_droite_90"]:
                 if time.time() - debut_rotation >= 1.0:
                     print("Fin de rotation 90°, passage en mode AVANCER")
@@ -162,7 +187,6 @@ def main():
     except Exception as e:
         print(f"\nErreur inattendue : {e}")
     finally:
-        # Nettoyage propre des ressources
         print("Nettoyage des ressources...")
         if 'ble' in locals():
             ble.stop()
@@ -172,7 +196,6 @@ def main():
             try:
                 camera.release()
             except Exception:
-                # Ignorer les erreurs OpenCV (ex: environnement headless sans GUI)
                 pass
         print("Terminé.")
 
