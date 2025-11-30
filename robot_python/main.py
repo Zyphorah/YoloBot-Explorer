@@ -7,6 +7,7 @@ from services.ble_service import BLEService
 from navigation.facade_navigation import FacadeNavigation
 from moteur.servo import Servo
 from vision.camera import Camera
+from commande import CommandHandler
 
 def demarrer_ble(ble_service):
     ble_service.start()
@@ -39,6 +40,10 @@ def main():
     servo_camera = Servo()
     servo_camera.tourner(90) # Position centrale par défaut
 
+    # 4. Initialisation du CommandHandler (patron Commande)
+    command_handler = CommandHandler(nav, servo_camera)
+    print(f"Commandes disponibles : {command_handler.lister_commandes()}")
+
     print("--- Robot Prêt ---")
     print("En attente de commandes BLE ou de détection...")
 
@@ -55,62 +60,20 @@ def main():
             commande = ble.obtenir_derniere_commande()
             
             if commande:
-                print(f"[BLE] Commande reçue : {commande}")
+                # Utilisation du patron Commande
+                changements = command_handler.executer_commande(commande)
                 
-                # Logique de mouvement simple
-                if "avancer" in commande:
-                    # Attention : votre méthode avancer() actuelle est bloquante (boucle while)
-                    # Cela mettra en pause la caméra tant que le robot avance.
-                    nav.avancer() 
-                    action_courante = "avancer"
-                elif "reculer" in commande:
-                    nav.reculer()
-                    action_courante = "reculer"
-                elif "gauche" in commande:
-                    nav.tourner_gauche()
-                    action_courante = "tourner_gauche_90"
-                    debut_rotation = time.time()
-                elif "droite" in commande:
-                    nav.tourner_droite()
-                    action_courante = "tourner_droite_90"
-                    debut_rotation = time.time()
-                elif "stop" in commande:
-                    nav.arreter()
-                    action_courante = "stop"
-                    mode_autonome = False # Stop désactive aussi le mode autonome
-                
-                # Commandes Servo Caméra
-                elif "cam_gauche" in commande:
-                    servo_camera.tourner(180)
-                elif "cam_droite" in commande:
-                    servo_camera.tourner(0)
-                elif "cam_centre" in commande:
-                    servo_camera.tourner(90)
-
-                # Commandes Modes
-                elif "detect_on" in commande:
-                    mode_detection = True
-                    print("Mode Détection ACTIVÉ")
-                elif "detect_off" in commande:
-                    mode_detection = False
-                    print("Mode Détection DÉSACTIVÉ")
-                elif "auto_on" in commande:
-                    mode_autonome = True
-                    print("Mode Autonome ACTIVÉ")
-                elif "auto_off" in commande:
-                    mode_autonome = False
-                    nav.arreter()
-                    print("Mode Autonome DÉSACTIVÉ")
-                
-                # Commandes Configuration
-                elif "set_object" in commande:
-                    # Format attendu: set_object:person
-                    try:
-                        _, new_target = commande.split(":")
-                        objet_cible = new_target.strip()
-                        print(f"Nouvelle cible de détection : {objet_cible}")
-                    except ValueError:
-                        print("Erreur format set_object. Attendu: set_object:classe")
+                # Appliquer les changements d'état retournés par la commande
+                if "action_courante" in changements:
+                    action_courante = changements["action_courante"]
+                if "mode_autonome" in changements:
+                    mode_autonome = changements["mode_autonome"]
+                if "mode_detection" in changements:
+                    mode_detection = changements["mode_detection"]
+                if "debut_rotation" in changements:
+                    debut_rotation = changements["debut_rotation"]
+                if "objet_cible" in changements:
+                    objet_cible = changements["objet_cible"]
 
             # --- B. GESTION CAMÉRA ---
             if mode_detection or mode_autonome:

@@ -22,3 +22,5 @@ picamera2
 
 
 dbus-python
+
+libcamera
