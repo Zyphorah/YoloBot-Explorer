@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../widget/settings/settings_option.dart';
 import '../../../../services/ble_service.dart';
 
@@ -11,8 +12,43 @@ class FormeGeometrique extends StatefulWidget {
 
 class _FormeGeometriqueState extends State<FormeGeometrique> {
   final BleService _bleService = BleService();
+  final storage = FlutterSecureStorage();
+
   String? selectedOption;
   String? selectionColor;
+
+  selectedOptionInit() async {
+    String? shape = await storage.read(key: 'selected_shape');
+    setState(() {
+      if (shape == 'square') {
+        selectedOption = 'Carré';
+      } else if (shape == 'circle') {
+        selectedOption = 'Cercle';
+      } else if (shape == 'triangle') {
+        selectedOption = 'Triangle';
+      }
+    });
+  }
+
+  selectionColorInit() async {
+    String? color = await storage.read(key: 'selected_color');
+    setState(() {
+      if (color == 'red') {
+        selectionColor = 'Rouge';
+      } else if (color == 'green') {
+        selectionColor = 'Vert';
+      } else if (color == 'blue') {
+        selectionColor = 'Bleu';
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    selectedOptionInit();
+    selectionColorInit();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,39 +57,58 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
       body: Column(
         children: [
           SettingsOption(
-            title: 'Personne',
-            icon: Icons.person,
-            isSelected: selectedOption == 'Personne',
+            title: 'Carré',
+            icon: Icons.crop_square,
+            isSelected: selectedOption == 'Carré',
             onTap: () {
               setState(() {
-                selectedOption = 'Personne';
+                selectedOption = selectedOption == 'Carré' ? null : 'Carré';
               });
-              _bleService.sendCommand('set_object', 'person');
+              if (selectedOption == 'Carré') {
+                _bleService.sendCommand('set_object', 'square');
+                storage.write(key: 'selected_shape', value: 'square');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_shape');
+              }
             },
           ),
           SettingsOption(
-            title: 'Balle',
+            title: 'Cercle',
             icon: Icons.sports_soccer,
-            isSelected: selectedOption == 'Balle',
+            isSelected: selectedOption == 'Cercle',
             onTap: () {
               setState(() {
-                selectedOption = 'Balle';
+                selectedOption = selectedOption == 'Cercle' ? null : 'Cercle';
               });
-              _bleService.sendCommand('set_object', 'sports ball');
+              if (selectedOption == 'Cercle') {
+                _bleService.sendCommand('set_object', 'circle');
+                storage.write(key: 'selected_shape', value: 'circle');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_shape');
+              }
             },
           ),
           SettingsOption(
-            title: 'Bouteille',
-            icon: Icons.local_drink,
-            isSelected: selectedOption == 'Bouteille',
+            title: 'Triangle',
+            icon: Icons.change_history,
+            isSelected: selectedOption == 'Triangle',
             onTap: () {
               setState(() {
-                selectedOption = 'Bouteille';
+                selectedOption = selectedOption == 'Triangle' ? null : 'Triangle';
               });
-              _bleService.sendCommand('set_object', 'bottle');
+              if (selectedOption == 'Triangle') {
+                _bleService.sendCommand('set_object', 'triangle');
+                storage.write(key: 'selected_shape', value: 'triangle');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_shape');
+              }
             },
           ),
-
+ 
+          // Gestion des couleurs
           Text(
             'Selectionner une couleur',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -65,19 +120,30 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
             isSelected: selectionColor == 'Rouge',
             onTap: () {
               setState(() {
-                selectionColor = 'Rouge';
+                selectionColor = selectionColor == 'Rouge' ? null : 'Rouge';
               });
+              if (selectionColor == 'Rouge') {
+                storage.write(key: 'selected_color', value: 'red');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_color');
+              }
             },
           ),
-
           SettingsOption(
             title: 'Vert',
             icon: Icons.circle,
             isSelected: selectionColor == 'Vert',
             onTap: () {
               setState(() {
-                selectionColor = 'Vert';
+                selectionColor = selectionColor == 'Vert' ? null : 'Vert';
               });
+              if (selectionColor == 'Vert') {
+                storage.write(key: 'selected_color', value: 'green');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_color');
+              }
             },
           ),
 
@@ -87,8 +153,14 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
             isSelected: selectionColor == 'Bleu',
             onTap: () {
               setState(() {
-                selectionColor = 'Bleu';
+                selectionColor = selectionColor == 'Bleu' ? null : 'Bleu';
               });
+              if (selectionColor == 'Bleu') {
+                storage.write(key: 'selected_color', value: 'blue');
+                storage.delete(key: 'custom_object');
+              } else {
+                storage.delete(key: 'selected_color');
+              }
             },
           ),
         ],
