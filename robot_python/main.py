@@ -8,6 +8,7 @@ from navigation.facade_navigation import FacadeNavigation
 from moteur.servo import Servo
 from vision.camera import Camera
 from commande import CommandHandler
+from etat_robot import EtatRobot
 
 def demarrer_ble(ble_service):
     ble_service.start()
@@ -47,12 +48,8 @@ def main():
     print("--- Robot Prêt ---")
     print("En attente de commandes BLE ou de détection...")
 
-    # Variables d'état
-    mode_detection = True
-    mode_autonome = True
-    action_courante = "stop" # Pour savoir si on recule ou avance
-    debut_rotation = 0 # Timestamp pour gérer la durée de rotation
-    objet_cible = "person" # Objet à détecter par défaut
+    # État du robot (dictionnaire centralisé)
+    etat = EtatRobot()
 
     try:
         while True:
@@ -60,25 +57,14 @@ def main():
             commande = ble.obtenir_derniere_commande()
             
             if commande:
-                # Utilisation du patron Commande
+                # Utilisation du patron Commande + dictionnaire d'état
                 changements = command_handler.executer_commande(commande)
-                
-                # Appliquer les changements d'état retournés par la commande
-                if "action_courante" in changements:
-                    action_courante = changements["action_courante"]
-                if "mode_autonome" in changements:
-                    mode_autonome = changements["mode_autonome"]
-                if "mode_detection" in changements:
-                    mode_detection = changements["mode_detection"]
-                if "debut_rotation" in changements:
-                    debut_rotation = changements["debut_rotation"]
-                if "objet_cible" in changements:
-                    objet_cible = changements["objet_cible"]
+                etat.appliquer_changements(changements)
 
             # --- B. GESTION CAMÉRA ---
-            if mode_detection or mode_autonome:
+            if etat.mode_detection or etat.mode_autonome:
                 # On cherche l'objet cible
-                objet_detecte = camera.detecter_objets(objet_cible)
+                objet_detecte = camera.detecter_objets(etat.objet_cible)
                 print(objet_detecte)
 
                 if objet_detecte:
@@ -89,14 +75,14 @@ def main():
                     ble.send_status(msg)
 
                     # Logique Autonome Simple
-                    if mode_autonome:
+                    if etat.mode_autonome:
                         if objet_detecte['position'] == 'gauche':
                             nav.tourner_angle_gauche(15)
-                            if action_courante == "avancer":
+                            if etat.action_courante == "avancer":
                                 nav.avancer()
                         elif objet_detecte['position'] == 'droite':
                             nav.tourner_angle_droit(15)
-                            if action_courante == "avancer":
+                            if etat.action_courante == "avancer":
                                 nav.avancer()
                         elif objet_detecte['position'] == 'centre':
                             # Si c'est au centre, on pourrait avancer un peu
@@ -104,18 +90,18 @@ def main():
                             pass
             
             # --- C. GESTION ROTATION AUTOMATIQUE ---
-            if action_courante in ["tourner_gauche_90", "tourner_droite_90"]:
-                if time.time() - debut_rotation >= 1.0:
+            if etat.action_courante in ["tourner_gauche_90", "tourner_droite_90"]:
+                if time.time() - etat.debut_rotation >= 1.0:
                     print("Fin de rotation 90°, passage en mode AVANCER")
                     nav.avancer()
-                    action_courante = "avancer"
+                    etat.action_courante = "avancer"
 
             # --- D. GESTION COLLISION ---
             # On vérifie la collision à chaque tour de boucle pour arrêter le robot si nécessaire
             # On ne vérifie PAS la collision si on recule (pour pouvoir se dégager d'un obstacle)
-            if action_courante != "reculer":
+            if etat.action_courante != "reculer":
                 if nav.verifier_collision():
-                    action_courante = "stop"
+                    etat.action_courante = "stop"
 
             # Petite pause pour ne pas surcharger le CPU (si la caméra n'a pas son propre waitKey)
             # time.sleep(0.01) 
