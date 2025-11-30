@@ -1,4 +1,6 @@
-class Anti_collision:
+from navigation.gestion_collision.interfaces.i_collision import i_collision
+
+class Anti_collision(i_collision):
     
     def __init__(self, radar):
         self.radar = radar

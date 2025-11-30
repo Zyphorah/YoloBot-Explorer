@@ -50,7 +50,6 @@ def main():
     finally:
         controleur.nettoyer()
 
-
 if __name__ == "__main__":
     main()
 
