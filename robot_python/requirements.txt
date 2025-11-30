@@ -18,4 +18,7 @@ Adafruit_PCA9685
 bluezero
 
 
-# picamera2
+picamera2
+
+
+dbus-python
