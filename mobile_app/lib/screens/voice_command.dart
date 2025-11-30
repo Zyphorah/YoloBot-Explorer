@@ -19,6 +19,19 @@ class _VoiceCommandState extends State<VoiceCommand> {
   double _confidence = 1.0;
   bool _initialized = false;
   String? _errorMessage;
+  String? _lastCommand;
+  Timer? _debounceTimer;
+
+  static const List<Map<String, dynamic>> _availableCommands = [
+    {'keywords': ['avancer', 'avance', 'en avant'], 'action': 'avancer'},
+    {'keywords': ['reculer', 'recule', 'en arrière'], 'action': 'reculer'},
+    {'keywords': ['gauche', 'à gauche'], 'action': 'gauche'},
+    {'keywords': ['droite', 'à droite'], 'action': 'droite'},
+    {'keywords': ['stop', 'arrête', 'arrete'], 'action': 'stop'},
+    {'keywords': ['détecter', 'détection', 'scanner'], 'action': 'detect_on'},
+    {'keywords': ['autonome', 'automatique', 'mission'], 'action': 'auto_on'},
+    {'keywords': ['manuel', 'manuelle'], 'action': 'auto_off'},
+  ];
 
   @override
   void initState() {
@@ -29,6 +42,7 @@ class _VoiceCommandState extends State<VoiceCommand> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _speech.stop();
     super.dispose();
   }
@@ -50,13 +64,11 @@ class _VoiceCommandState extends State<VoiceCommand> {
           }
         },
       );
-
       if (mounted) {
         setState(() {
           _initialized = available;
           if (!available) {
-            _errorMessage =
-                'La reconnaissance vocale n\'est pas disponible sur cet appareil.';
+            _errorMessage = 'Reconnaissance vocale non disponible.';
           }
         });
       }
@@ -70,35 +82,32 @@ class _VoiceCommandState extends State<VoiceCommand> {
     }
   }
 
-  void _processCommand(String text) {
+  String? _processCommand(String text) {
     String command = text.toLowerCase();
-    String? action;
-
-    if (command.contains('avancer') || command.contains('avance')) {
-      action = 'avancer';
-    } else if (command.contains('reculer') || command.contains('recule')) {
-      action = 'reculer';
-    } else if (command.contains('gauche')) {
-      action = 'gauche';
-    } else if (command.contains('droite')) {
-      action = 'droite';
-    } else if (command.contains('stop') ||
-        command.contains('arrête') ||
-        command.contains('arrete')) {
-      action = 'stop';
-    }
-
-    if (action != null) {
-      _bleService.sendCommand(action);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Commande envoyée: $action'),
-            duration: const Duration(milliseconds: 1000),
-          ),
-        );
+    for (var cmdInfo in _availableCommands) {
+      for (var keyword in cmdInfo['keywords'] as List<String>) {
+        if (command.contains(keyword)) {
+          return cmdInfo['action'] as String;
+        }
       }
     }
+    return null;
+  }
+
+  void _sendCommand(String action) {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (_lastCommand != action) {
+        _lastCommand = action;
+        _bleService.sendCommand(action);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Commande envoyée: $action'), backgroundColor: Colors.green),
+          );
+        }
+        Future.delayed(const Duration(seconds: 2), () => _lastCommand = null);
+      }
+    });
   }
 
   Future<void> _listen() async {
@@ -107,12 +116,18 @@ class _VoiceCommandState extends State<VoiceCommand> {
       if (!_initialized) return;
     }
 
+    if (!_bleService.isConnected) {
+      setState(() => _errorMessage = 'Robot non connecté.');
+      return;
+    }
+
     if (!_isListening) {
       bool available = await _speech.initialize();
       if (available) {
         setState(() {
           _isListening = true;
           _errorMessage = null;
+          _text = 'Écoute en cours...';
         });
         _speech.listen(
           onResult: (val) {
@@ -122,9 +137,18 @@ class _VoiceCommandState extends State<VoiceCommand> {
                 _confidence = val.confidence;
               }
             });
-            // Process command on final result or partial results if needed
-            // Here we process on every update, but you might want to debounce or wait for final
-            _processCommand(val.recognizedWords);
+            if (val.finalResult || val.confidence > 0.7) {
+              final action = _processCommand(val.recognizedWords);
+              if (action != null) {
+                _sendCommand(action);
+              } else if (val.finalResult && val.recognizedWords.isNotEmpty) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Non reconnue: "${val.recognizedWords}"'), backgroundColor: Colors.orange),
+                  );
+                }
+              }
+            }
           },
           localeId: 'fr_FR',
         );
@@ -137,34 +161,44 @@ class _VoiceCommandState extends State<VoiceCommand> {
 
   @override
   Widget build(BuildContext context) {
+    final isConnected = _bleService.isConnected;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Commandes vocales')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // Indicateur de connexion
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  isConnected ? Icons.bluetooth_connected : Icons.bluetooth_disabled,
+                  color: isConnected ? Colors.green : Colors.red,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isConnected ? 'Robot connecté' : 'Robot non connecté',
+                  style: TextStyle(color: isConnected ? Colors.green : Colors.red),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
+            
+            // Bouton micro
             Expanded(
               child: Center(
                 child: GestureDetector(
-                  onTap: _errorMessage == null ? _listen : null,
+                  onTap: isConnected ? _listen : null,
                   child: Container(
                     width: 140,
                     height: 140,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: _errorMessage != null
-                          ? Colors.orange
-                          : (_isListening ? Colors.red : Colors.grey),
-                      boxShadow: _isListening
-                          ? [
-                              BoxShadow(
-                                color: Colors.red.withOpacity(0.5),
-                                blurRadius: 20,
-                                spreadRadius: 5,
-                              ),
-                            ]
-                          : [],
+                      color: !isConnected
+                          ? Colors.grey
+                          : (_isListening ? Colors.red : const Color(0xFF6C63FF)),
                     ),
                     child: Icon(
                       _isListening ? Icons.mic : Icons.mic_none,
@@ -175,32 +209,43 @@ class _VoiceCommandState extends State<VoiceCommand> {
                 ),
               ),
             ),
+            
+            // Texte reconnu
             const SizedBox(height: 20),
             Text(
               _errorMessage ?? _text,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w500,
+                fontSize: 18,
                 color: _errorMessage != null ? Colors.red : Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
-            if (_errorMessage == null &&
-                _text.isNotEmpty &&
-                _text != 'Appuyer pour activer la reconnaissance vocale')
+            if (_errorMessage == null && _text != 'Appuyer pour activer la reconnaissance vocale' && _text != 'Écoute en cours...')
               Text(
                 'Confiance: ${(_confidence * 100.0).toStringAsFixed(1)}%',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
+            
+            const SizedBox(height: 24),
+            
+            // Boutons rapides
+            if (isConnected)
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  ElevatedButton(onPressed: () => _sendCommand('stop'), child: const Text('Stop')),
+                  ElevatedButton(onPressed: () => _sendCommand('detect_on'), child: const Text('Détecter')),
+                  ElevatedButton(onPressed: () => _sendCommand('auto_on'), child: const Text('Autonome')),
+                ],
+              ),
+            
             const Spacer(),
             Text(
-              _errorMessage != null
-                  ? 'Erreur détectée'
-                  : (_initialized ? 'Module vocal prêt' : 'Initialisation...'),
-              style: const TextStyle(fontSize: 12, color: Colors.blueGrey),
+              _initialized ? 'Appuyez sur le micro pour parler' : 'Initialisation...',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
