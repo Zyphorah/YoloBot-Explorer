@@ -6,7 +6,6 @@ from moteur.servo import Servo
 from vision.camera import Camera
 from comportements import ControleurRobot
 
-
 def creer_camera() -> Camera:
     """Crée et configure l'instance de la caméra."""
     model_path = "../yolov8n.pt"
@@ -15,7 +14,6 @@ def creer_camera() -> Camera:
     
     print(f"Chargement du modèle IA depuis {model_path}...")
     return Camera(model_path)
-
 
 def main():
     """Point d'entrée principal du robot."""
