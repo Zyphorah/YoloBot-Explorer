@@ -8,7 +8,7 @@ from navigation.facade_navigation import FacadeNavigation
 from moteur.servo import Servo
 from vision.camera import Camera
 from commande import CommandHandler
-from etat_robot import EtatRobot
+from commande.etat_robot import EtatRobot
 
 def demarrer_ble(ble_service):
     ble_service.start()
