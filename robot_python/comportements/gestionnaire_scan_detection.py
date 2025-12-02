@@ -71,13 +71,13 @@ class GestionnaireScanDetection:
     
     def _centrer_cible_avec_servo(self, position: str) -> None:
         if position == 'gauche':
-            nouvel_angle = max(self.ANGLE_MIN, self._angle_servo_actuel - self.AJUSTEMENT_CENTRAGE)
+            nouvel_angle = min(self.ANGLE_MAX, self._angle_servo_actuel + self.AJUSTEMENT_CENTRAGE)
             if nouvel_angle != self._angle_servo_actuel:
                 self._angle_servo_actuel = nouvel_angle
                 self._servo.tourner(self._angle_servo_actuel)
                 print(f"Scan: servo ajuste a {self._angle_servo_actuel} degres (gauche)")
         elif position == 'droite':
-            nouvel_angle = min(self.ANGLE_MAX, self._angle_servo_actuel + self.AJUSTEMENT_CENTRAGE)
+            nouvel_angle = max(self.ANGLE_MIN, self._angle_servo_actuel - self.AJUSTEMENT_CENTRAGE)
             if nouvel_angle != self._angle_servo_actuel:
                 self._angle_servo_actuel = nouvel_angle
                 self._servo.tourner(self._angle_servo_actuel)

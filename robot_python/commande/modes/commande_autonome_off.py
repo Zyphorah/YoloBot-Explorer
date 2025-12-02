@@ -10,6 +10,3 @@ class CommandeAutonomeOff(ICommande):
         self.navigation.arreter()
         print("Mode Autonome DÉSACTIVÉ")
         return {"mode_autonome": False}
-    
-    def get_nom(self) -> str:
-        return "auto_off"

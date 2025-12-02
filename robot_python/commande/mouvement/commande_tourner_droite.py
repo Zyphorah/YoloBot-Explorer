@@ -3,7 +3,6 @@ from commande.interfaces.i_commande import ICommande
 
 
 class CommandeTournerDroite(ICommande):
-    """Commande pour tourner à droite (90°)."""
     
     def __init__(self, navigation):
         self.navigation = navigation
@@ -14,6 +13,3 @@ class CommandeTournerDroite(ICommande):
             "action_courante": "tourner_droite_90",
             "debut_rotation": time.time()
         }
-    
-    def get_nom(self) -> str:
-        return "droite"

@@ -2,7 +2,6 @@ from commande.interfaces.i_commande import ICommande
 
 
 class CommandeSetObject(ICommande):
-    """Commande pour définir l'objet cible de détection."""
     
     def __init__(self, commande_texte: str):
         self.commande_texte = commande_texte
@@ -16,6 +15,3 @@ class CommandeSetObject(ICommande):
         except ValueError:
             print("Erreur format set_object. Attendu: set_object:classe")
             return {}
-    
-    def get_nom(self) -> str:
-        return "set_object"
