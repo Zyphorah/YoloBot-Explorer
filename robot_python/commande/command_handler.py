@@ -1,14 +1,14 @@
 class CommandHandler:
     
     def __init__(self, navigation, servo):
-        self.navigation = navigation
+        self.nav = navigation
         self.servo = servo
         self._commandes = {
-            "avancer": lambda: (self.navigation.avancer(), {"action_courante": "avancer"})[1],
-            "reculer": lambda: (self.navigation.reculer(), {"action_courante": "reculer"})[1],
-            "gauche": lambda: (self.navigation.tourner_gauche(), {"action_courante": "tourner_gauche_90"})[1],
-            "droite": lambda: (self.navigation.tourner_droite(), {"action_courante": "tourner_droite_90"})[1],
-            "stop": lambda: (self.navigation.arreter(), {"action_courante": "stop", "mode_autonome": False})[1],
+            "avancer": lambda: (self.nav.avancer(), {"action_courante": "avancer"})[1],
+            "reculer": lambda: (self.nav.reculer(), {"action_courante": "reculer"})[1],
+            "gauche": lambda: (self.nav.tourner_gauche(), {"action_courante": "tourner_gauche_90"})[1],
+            "droite": lambda: (self.nav.tourner_droite(), {"action_courante": "tourner_droite_90"})[1],
+            "stop": lambda: (self.nav.arreter(), {"action_courante": "stop", "mode_autonome": False})[1],
             
             "cam_gauche": lambda: (self.servo.tourner(180), {})[1],
             "cam_droite": lambda: (self.servo.tourner(0), {})[1],
@@ -17,7 +17,7 @@ class CommandHandler:
             "detect_on": lambda: {"mode_detection": True},
             "detect_off": lambda: {"mode_detection": False},
             "auto_on": lambda: {"mode_autonome": True},
-            "auto_off": lambda: (self.navigation.arreter(), {"mode_autonome": False})[1],
+            "auto_off": lambda: (self.nav.arreter(), {"mode_autonome": False})[1],
         }
     
     def executer_commande(self, commande_texte: str) -> dict:

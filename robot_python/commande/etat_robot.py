@@ -2,36 +2,23 @@ class EtatRobot:
 
     def __init__(self):
         self._etat = {
-            "mode_detection": True,
-            "mode_autonome": True,
+            "mode_detection": False,
+            "mode_autonome": False,
             "action_courante": "stop",
             "debut_rotation": 0,
             "objet_cible": "person"
         }
     
+    def __getattr__(self, name: str):
+        if name in self._etat:
+            return self._etat[name]
+        raise AttributeError(f"EtatRobot n'a pas d'attribut '{name}'")
+    
+    def __setattr__(self, name: str, value):
+        if name == "_etat":
+            super().__setattr__(name, value)
+        else:
+            self._etat[name] = value
+    
     def appliquer_changements(self, changements: dict):
         self._etat.update(changements)
-    
-    @property
-    def mode_detection(self) -> bool:
-        return self._etat["mode_detection"]
-    
-    @property
-    def mode_autonome(self) -> bool:
-        return self._etat["mode_autonome"]
-    
-    @property
-    def action_courante(self) -> str:
-        return self._etat["action_courante"]
-    
-    @action_courante.setter
-    def action_courante(self, valeur: str):
-        self._etat["action_courante"] = valeur
-    
-    @property
-    def debut_rotation(self) -> float:
-        return self._etat["debut_rotation"]
-    
-    @property
-    def objet_cible(self) -> str:
-        return self._etat["objet_cible"]
