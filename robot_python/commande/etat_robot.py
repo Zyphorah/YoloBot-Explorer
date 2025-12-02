@@ -12,12 +12,6 @@ class EtatRobot:
     def appliquer_changements(self, changements: dict):
         self._etat.update(changements)
     
-    def obtenir(self, cle: str):
-        return self._etat.get(cle)
-    
-    def definir(self, cle: str, valeur):
-        self._etat[cle] = valeur
-    
     @property
     def mode_detection(self) -> bool:
         return self._etat["mode_detection"]
@@ -41,6 +35,3 @@ class EtatRobot:
     @property
     def objet_cible(self) -> str:
         return self._etat["objet_cible"]
-    
-    def __repr__(self) -> str:
-        return f"EtatRobot({self._etat})"

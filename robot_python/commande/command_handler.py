@@ -1,70 +1,44 @@
-from typing import Dict, List
-from commande.interfaces.i_commande import ICommande
-
-# Imports des commandes depuis leurs modules respectifs
-from commande.mouvement import (
-    CommandeAvancer, CommandeReculer, CommandeTournerGauche,
-    CommandeTournerDroite, CommandeStop
-)
-from commande.camera import (
-    CommandeCameraGauche, CommandeCameraDroite, CommandeCameraCentre
-)
-from commande.modes import (
-    CommandeDetectionOn, CommandeDetectionOff,
-    CommandeAutonomeOn, CommandeAutonomeOff
-)
-from commande.config import CommandeSetObject
-
-
 class CommandHandler:
     
     def __init__(self, navigation, servo):
         self.navigation = navigation
         self.servo = servo
-        self._commandes: Dict[str, ICommande] = {}
-        self._enregistrer_commandes()
-    
-    def _enregistrer_commandes(self):
         self._commandes = {
-            "avancer": CommandeAvancer(self.navigation),
-            "reculer": CommandeReculer(self.navigation),
-            "gauche": CommandeTournerGauche(self.navigation),
-            "droite": CommandeTournerDroite(self.navigation),
-            "stop": CommandeStop(self.navigation),
-            "cam_gauche": CommandeCameraGauche(self.servo),
-            "cam_droite": CommandeCameraDroite(self.servo),
-            "cam_centre": CommandeCameraCentre(self.servo),
-            "detect_on": CommandeDetectionOn(),
-            "detect_off": CommandeDetectionOff(),
-            "auto_on": CommandeAutonomeOn(),
-            "auto_off": CommandeAutonomeOff(self.navigation),
+            "avancer": lambda: (self.navigation.avancer(), {"action_courante": "avancer"})[1],
+            "reculer": lambda: (self.navigation.reculer(), {"action_courante": "reculer"})[1],
+            "gauche": lambda: (self.navigation.tourner_gauche(), {"action_courante": "tourner_gauche_90"})[1],
+            "droite": lambda: (self.navigation.tourner_droite(), {"action_courante": "tourner_droite_90"})[1],
+            "stop": lambda: (self.navigation.arreter(), {"action_courante": "stop", "mode_autonome": False})[1],
+            
+            "cam_gauche": lambda: (self.servo.tourner(180), {})[1],
+            "cam_droite": lambda: (self.servo.tourner(0), {})[1],
+            "cam_centre": lambda: (self.servo.tourner(90), {})[1],
+            
+            "detect_on": lambda: {"mode_detection": True},
+            "detect_off": lambda: {"mode_detection": False},
+            "auto_on": lambda: {"mode_autonome": True},
+            "auto_off": lambda: (self.navigation.arreter(), {"mode_autonome": False})[1],
         }
     
     def executer_commande(self, commande_texte: str) -> dict:
-        print(f"CommandHandler: commande recue: {commande_texte}")
+        print(f"[BLE] Commande reçue : {commande_texte}")
         
         if "set_object" in commande_texte:
-            cmd = CommandeSetObject(commande_texte)
-            return cmd.executer()
+            try:
+                _, new_target = commande_texte.split(":")
+                objet_cible = new_target.strip()
+                print(f"Nouvelle cible de détection : {objet_cible}")
+                return {"objet_cible": objet_cible}
+            except ValueError:
+                print("Erreur format set_object. Attendu: set_object:classe")
+                return {}
         
         for cle, commande in self._commandes.items():
             if cle in commande_texte:
-                return commande.executer()
+                return commande()
         
-        print(f"CommandHandler: commande inconnue: {commande_texte}")
+        print(f"Commande inconnue : {commande_texte}")
         return {}
     
-    def ajouter_commande(self, cle: str, commande: ICommande):
-        self._commandes[cle] = commande
-    
-    def supprimer_commande(self, cle: str) -> bool:
-        if cle in self._commandes:
-            del self._commandes[cle]
-            return True
-        return False
-    
-    def lister_commandes(self) -> List[str]:
+    def lister_commandes(self) -> list:
         return list(self._commandes.keys())
-    
-    def obtenir_commande(self, cle: str) -> ICommande:
-        return self._commandes.get(cle)

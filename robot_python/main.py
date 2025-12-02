@@ -1,4 +1,8 @@
-from robot_python import BLEService, FacadeNavigation, Servo, Camera, ControleurRobot
+from services.ble_service import BLEService
+from navigation.facade_navigation import FacadeNavigation
+from moteur.servo import Servo
+from vision.camera import Camera
+from comportements import ControleurRobot
 
 def main():    
     camera = Camera("yolov8n.pt")
