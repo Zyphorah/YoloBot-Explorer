@@ -11,7 +11,6 @@ class GestionnaireCollision:
         self._navigation = navigation
     
     def verifier_collision(self, etat: EtatRobot) -> bool:
-
         if self._est_en_recul(etat):
             return False
         
@@ -22,13 +21,11 @@ class GestionnaireCollision:
         return False
     
     def _est_en_recul(self, etat: EtatRobot) -> bool:
-        """Vérifie si le robot est en train de reculer."""
         return etat.action_courante == self.ACTION_RECULER
     
     def _collision_detectee(self) -> bool:
-        """Vérifie si une collision est détectée par les capteurs."""
         return self._navigation.verifier_collision()
     
     def _arreter_robot(self, etat: EtatRobot) -> None:
-        """Arrête le robot en cas de collision."""
+        print("Collision: detectee, arret du robot")
         etat.action_courante = self.ACTION_STOP

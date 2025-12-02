@@ -23,8 +23,8 @@ class Servo(IRotation_angle, ICleanup):
         channel = 0
         pulse = self.angle_to_pulse(angle)
         self.pwm.set_pwm(channel, 0, pulse)
+        print(f"Servo: tourner a {angle} degres")
         sleep(1)
 
- 
     def cleanup(self):
         self.pwm = None

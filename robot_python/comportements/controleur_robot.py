@@ -9,69 +9,57 @@ from comportements.comportement_autonome import ComportementAutonome
 from comportements.gestionnaire_rotation import GestionnaireRotation
 from comportements.gestionnaire_collision import GestionnaireCollision
 from comportements.gestionnaire_detection import GestionnaireDetection
+from comportements.gestionnaire_scan_detection import GestionnaireScanDetection
 
 class ControleurRobot:
-    def __init__(
-        self,
-        navigation: FacadeNavigation,
-        servo: Servo,
-        camera: Camera,
-        ble_service: BLEService
-    ):
-     
+    def __init__(self, navigation: FacadeNavigation, servo: Servo, camera: Camera, ble_service: BLEService):
         self._navigation = navigation
         self._servo = servo
         self._ble = ble_service
-        
-        # État centralisé du robot
         self._etat = EtatRobot()
-        
-        # Handler de commandes (patron Commande)
         self._command_handler = CommandHandler(navigation, servo)
-        
-        # Gestionnaires de comportements
         self._detection = GestionnaireDetection(camera, ble_service)
+        self._scan_detection = GestionnaireScanDetection(servo, navigation, camera, ble_service)
         self._autonome = ComportementAutonome(navigation)
         self._rotation = GestionnaireRotation(navigation)
         self._collision = GestionnaireCollision(navigation)
     
     def initialiser(self) -> None:
-        """Initialise le robot (position par défaut)."""
-        self._servo.tourner(90)  # Caméra centrée
-        print(f"Commandes disponibles : {self._command_handler.lister_commandes()}")
+        self._servo.tourner(90)
+        print(f"Robot: initialise, commandes disponibles: {self._command_handler.lister_commandes()}")
     
     def executer_cycle(self) -> None:
-
         self._traiter_commande_bluetooth()
-        self._traiter_detection()
+        self._traiter_scan_detection()
+        if not self._etat.mode_detection:
+            self._traiter_detection()
         self._rotation.verifier_et_terminer_rotation(self._etat)
         self._collision.verifier_collision(self._etat)
     
     def _traiter_commande_bluetooth(self) -> None:
-        """Traite les commandes Bluetooth entrantes."""
         commande = self._ble.obtenir_derniere_commande()
-        
         if commande:
+            print(f"Robot: commande recue: {commande}")
             changements = self._command_handler.executer_commande(commande)
             self._etat.appliquer_changements(changements)
     
+    def _traiter_scan_detection(self) -> None:
+        if self._etat.mode_detection:
+            self._scan_detection.executer(self._etat)
+    
     def _traiter_detection(self) -> None:
-        """Traite la détection d'objets et le comportement autonome."""
         objet_detecte = self._detection.detecter(self._etat)
-        
         if objet_detecte:
             self._autonome.executer(self._etat, objet_detecte)
     
     def nettoyer(self) -> None:
-        print("Nettoyage des ressources...")
-        
+        print("Robot: nettoyage des ressources")
+        self._scan_detection.forcer_arret_scan()
         self._ble.stop()
         self._navigation.cleanup()
         self._detection.liberer()
-        
-        print("Terminé.")
+        print("Robot: termine")
     
     @property
     def etat(self) -> EtatRobot:
-        """Retourne l'état actuel du robot."""
         return self._etat

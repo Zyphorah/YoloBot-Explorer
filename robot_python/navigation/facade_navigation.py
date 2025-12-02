@@ -62,7 +62,7 @@ class FacadeNavigation:
         if self.collision.detecter_collision():
             self.moteurA.arreter()
             self.moteurB.arreter()
-            print("Collision détectée ! Moteurs arrêtés.")
+            print("Navigation: collision detectee, moteurs arretes")
             return True
         return False
 
