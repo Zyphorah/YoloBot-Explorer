@@ -24,7 +24,7 @@ class ControleurRobot:
         self._autonome = GestionnaireAutonome(servo, navigation, camera, ble_service)
         self._rotation = GestionnaireRotation(navigation)
         self._collision = GestionnaireCollision(navigation)
-
+     
     def initialiser(self) -> None:
         self._servo.tourner(90)
         print(f"Robot: initialise, commandes: {self._command_handler.lister_commandes()}")
