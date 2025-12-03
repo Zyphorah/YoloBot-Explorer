@@ -75,12 +75,16 @@ class GestionnaireAutonome:
     def _aligner_vers_cible(self, angle: float) -> None:
         self._navigation.arreter()
         
+        # Réduire l'angle pour des ajustements plus doux
+        angle_ajuste = abs(angle) * 0.5  # Tourner seulement 50% de l'angle calculé
+        angle_ajuste = min(angle_ajuste, 30)  # Maximum 30 degrés par ajustement
+        
         if angle > 0:
-            print(f"Autonome: rotation gauche {abs(angle):.0f} degres")
-            self._navigation.tourner_angle_gauche(abs(angle))
+            print(f"Autonome: rotation gauche {angle_ajuste:.0f} degres")
+            self._navigation.tourner_angle_gauche(angle_ajuste)
         else:
-            print(f"Autonome: rotation droite {abs(angle):.0f} degres")
-            self._navigation.tourner_angle_droit(abs(angle))
+            print(f"Autonome: rotation droite {angle_ajuste:.0f} degres")
+            self._navigation.tourner_angle_droit(angle_ajuste)
         
         self._servo.tourner(90)
         self._angle_servo = 90
