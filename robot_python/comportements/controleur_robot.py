@@ -36,6 +36,8 @@ class ControleurRobot:
             self._traiter_mode_autonome()
         elif self._etat.mode_detection:
             self._traiter_scan_detection()
+        else:
+            self._collision.verifier_collision(self._etat)
         
         self._rotation.verifier_et_terminer_rotation(self._etat)
 

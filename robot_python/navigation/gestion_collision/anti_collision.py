@@ -8,7 +8,7 @@ class Anti_collision(i_collision):
     def detecter_collision(self):
         
         distance = self.radar.obtenir_distance()
-        if distance < 50:
+        if distance < 25:
             return True
         else:
             return False

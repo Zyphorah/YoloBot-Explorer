@@ -2,6 +2,8 @@ import time
 
 class CommandHandler:
     
+    COMMANDES_MOUVEMENT = {"avancer", "reculer", "gauche", "droite"}
+    
     def __init__(self, navigation, servo):
         self.nav = navigation
         self.servo = servo
@@ -37,6 +39,8 @@ class CommandHandler:
         
         for cle, commande in self._commandes.items():
             if cle in commande_texte:
+                if cle in self.COMMANDES_MOUVEMENT:
+                    self.nav.arreter()
                 return commande()
         
         print(f"Commande inconnue : {commande_texte}")
