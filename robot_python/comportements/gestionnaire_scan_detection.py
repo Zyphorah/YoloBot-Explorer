@@ -5,7 +5,6 @@ from navigation.facade_navigation import FacadeNavigation
 from vision.camera import Camera
 from services.ble_service import BLEService
 
-
 class GestionnaireScanDetection:
 
     POSITIONS_SCAN = [0, 90, 180]
