@@ -1,9 +1,10 @@
-from time import sleep
 import cv2
 import numpy as np
 from ultralytics import YOLO
 from picamera2 import Picamera2
+from libcamera import Transform
 import os
+import matplotlib.pyplot as plt
 
 
 def gui_available():
@@ -18,23 +19,30 @@ class Camera:
 
         if not self.use_gui:
             os.environ["QT_QPA_PLATFORM"] = "offscreen"
+        else:
+            if os.environ.get("WAYLAND_DISPLAY"):
+                os.environ["QT_QPA_PLATFORM"] = "wayland"
+            elif os.environ.get("DISPLAY"):
+                os.environ["QT_QPA_PLATFORM"] = "xcb"
+            else:
+                self.use_gui = False
 
         try:
             self.picam2 = Picamera2()
             config = self.picam2.create_preview_configuration(
-                main={"size": (640, 480), "format": "BGR888"}
+                main={"size": (640, 640)},
+                transform=Transform(vflip=True)  
             )
             self.picam2.configure(config)
             self.picam2.start()
 
             if self.use_gui:
-                try:
-                    cv2.namedWindow('Detection Camera', cv2.WINDOW_NORMAL)
-                except Exception as e:
-                    print(f"Camera: impossible d initialiser la fenetre GUI ({e})")
-                    self.use_gui = False
+                plt.ion()  # Enable interactive mode for real-time updates
+                self.fig, self.ax = plt.subplots()
+                self.im = self.ax.imshow(np.zeros((640, 640, 3), dtype=np.uint8))
+                plt.title('Detection Camera')
 
-            print("Camera: demarree avec succes")
+            print("Camera: démarrée avec succès")
 
         except Exception as e:
             print(f"Camera: erreur critique lors de l ouverture: {e}")
@@ -54,9 +62,17 @@ class Camera:
         except Exception as e:
             print(f"Camera: erreur de capture: {e}")
             return None
-
-        results = self.model(frame, verbose=False)[0]
+        
+        # Convert frame from BGR to HSV
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        # Save the captured frame for debugging (convert back to BGR for normal colors)
+        cv2.imwrite("debug_captured_frame.jpg", cv2.cvtColor(frame, cv2.COLOR_HSV2BGR))
+        results = self.model.predict(frame, verbose=False)[0]
         objet_detecte = None
+        
+        print(f"Camera: objet détecté '{objet_detecte}'")
+        print(f"Résultats: {results}")
 
         for result in results:
             boxes = result.boxes
@@ -79,16 +95,12 @@ class Camera:
                             else ('gauche' if centre_x < largeur_frame / 2 else 'droite')
                         )
                     }
-
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-                    texte = f"{nom_classe} {confiance:.2f}"
-                    cv2.putText(frame, texte, (x1, y1 - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-
+                    
         if self.use_gui:
             try:
-                cv2.imshow('Detection Camera', frame)
-                cv2.waitKey(1)
+                self.im.set_data(cv2.cvtColor(frame, cv2.COLOR_HSV2RGB))
+                plt.draw()
+                plt.pause(0.01)  # Small pause for update
             except Exception as e:
                 print(f"Camera: erreur affichage GUI: {e}")
                 self.use_gui = False
@@ -101,4 +113,4 @@ class Camera:
             self.picam2.stop()
             self.picam2.close()
         if self.use_gui:
-            cv2.destroyAllWindows()
+            plt.close('all')

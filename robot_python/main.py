@@ -5,12 +5,12 @@ from vision.camera import Camera
 from comportements import ControleurRobot
 
 def main():    
-    camera = Camera("yolov8n.pt")
-    ble = BLEService()
     nav = FacadeNavigation()
     servo = Servo()
     
+    ble = BLEService()
     ble.start()
+    camera = Camera("best.pt")
     
     controleur = ControleurRobot(nav, servo, camera, ble)
     controleur.initialiser()

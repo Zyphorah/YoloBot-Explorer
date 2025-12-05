@@ -51,7 +51,6 @@ class GestionnaireAutonome:
         self._servo.tourner(self._angle_servo)
 
     def _approcher_cible(self, objet: dict) -> bool:
-        position = objet.get('position')
         boite = objet.get('boite', [0, 0, 0, 0])
         centre_x = (boite[0] + boite[2]) // 2
         largeur_image = 640
@@ -76,7 +75,7 @@ class GestionnaireAutonome:
         self._navigation.arreter()
         
         # Réduire l'angle pour des ajustements plus doux
-        angle_ajuste = abs(angle) * 0.5  # Tourner seulement 50% de l'angle calculé
+        angle_ajuste = abs(angle) * 0.2  # Tourner seulement 20% de l'angle calculé
         angle_ajuste = min(angle_ajuste, 30)  # Maximum 30 degrés par ajustement
         
         if angle > 0:
