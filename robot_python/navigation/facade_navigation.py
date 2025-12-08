@@ -38,7 +38,7 @@ class FacadeNavigation:
         # N4 sur la pin 11 (BOARD) = GPIO 17 (BCM)
         self.N1 = DigitalOutputDevice(22)
         self.N2 = DigitalOutputDevice(27)
-        self.N3 = DigitalOutputDevice(4)
+        self.N3 = DigitalOutputDevice(6)
         self.N4 = DigitalOutputDevice(17)
 
         self.moteurA = Dc(self.N1, self.N2)
@@ -62,7 +62,7 @@ class FacadeNavigation:
         if self.collision.detecter_collision():
             self.moteurA.arreter()
             self.moteurB.arreter()
-            print("Collision détectée ! Moteurs arrêtés.")
+            print("Navigation: collision detectee, moteurs arretes")
             return True
         return False
 
