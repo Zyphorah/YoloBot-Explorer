@@ -7,12 +7,10 @@ import os
 import matplotlib.pyplot as plt
 
 
-# Définition des plages de couleurs en HSV
-# Format: (lower_bound, upper_bound) pour chaque couleur
 COLOR_RANGES = {
     "rouge": [
-        (np.array([0, 100, 100]), np.array([10, 255, 255])),      # Rouge bas
-        (np.array([160, 100, 100]), np.array([180, 255, 255]))    # Rouge haut
+        (np.array([0, 100, 100]), np.array([10, 255, 255])),
+        (np.array([160, 100, 100]), np.array([180, 255, 255]))
     ],
     "red": [
         (np.array([0, 100, 100]), np.array([10, 255, 255])),
@@ -21,19 +19,7 @@ COLOR_RANGES = {
     "vert": [(np.array([35, 100, 100]), np.array([85, 255, 255]))],
     "green": [(np.array([35, 100, 100]), np.array([85, 255, 255]))],
     "bleu": [(np.array([100, 100, 100]), np.array([130, 255, 255]))],
-    "blue": [(np.array([100, 100, 100]), np.array([130, 255, 255]))],
-    "jaune": [(np.array([20, 100, 100]), np.array([35, 255, 255]))],
-    "yellow": [(np.array([20, 100, 100]), np.array([35, 255, 255]))],
-    "orange": [(np.array([10, 100, 100]), np.array([20, 255, 255]))],
-    "violet": [(np.array([130, 100, 100]), np.array([160, 255, 255]))],
-    "purple": [(np.array([130, 100, 100]), np.array([160, 255, 255]))],
-    "rose": [(np.array([140, 50, 100]), np.array([170, 255, 255]))],
-    "pink": [(np.array([140, 50, 100]), np.array([170, 255, 255]))],
-    "blanc": [(np.array([0, 0, 200]), np.array([180, 30, 255]))],
-    "white": [(np.array([0, 0, 200]), np.array([180, 30, 255]))],
-    "noir": [(np.array([0, 0, 0]), np.array([180, 255, 50]))],
-    "black": [(np.array([0, 0, 0]), np.array([180, 255, 50]))],
-    "cyan": [(np.array([85, 100, 100]), np.array([100, 255, 255]))],
+    "blue": [(np.array([100, 100, 100]), np.array([130, 255, 255]))]
 }
 
 
@@ -139,8 +125,7 @@ class Camera:
         best_percentage = 0
         
         for color_name, ranges in COLOR_RANGES.items():
-            # Ignorer les doublons (versions françaises/anglaises)
-            if color_name in ["red", "green", "blue", "yellow", "purple", "pink", "white", "black"]:
+            if color_name in ["red", "green", "blue", "rouge", "vert", "bleu"]:
                 continue
                 
             mask = np.zeros(roi_hsv.shape[:2], dtype=np.uint8)
@@ -169,7 +154,6 @@ class Camera:
             print(f"Camera: erreur de capture: {e}")
             return None
         
-        # Convertir RGBA en BGR si nécessaire (Picamera2 peut retourner 4 canaux)
         if frame.shape[2] == 4:
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGBA2BGR)
         else:
@@ -177,7 +161,6 @@ class Camera:
         
         frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         
-        # Save the captured frame for debugging
         cv2.imwrite("debug_captured_frame.jpg", frame_bgr)
         
         try:
@@ -220,7 +203,7 @@ class Camera:
                         "couleur_pourcentage": info_couleur["pourcentage"]
                     }
                     print(f"Camera: {nom_classe} {info_couleur['couleur_detectee']} détecté à {objet_detecte['position']}")
-                    break  # Prendre le premier objet correspondant
+                    break
         except Exception as e:
             print(f"Camera: erreur lors du traitement des résultats: {e}")
             return None
@@ -229,7 +212,7 @@ class Camera:
             try:
                 self.im.set_data(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
                 plt.draw()
-                plt.pause(0.01)  # Small pause for update
+                plt.pause(0.01)
             except Exception as e:
                 print(f"Camera: erreur affichage GUI: {e}")
                 self.use_gui = False

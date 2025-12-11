@@ -14,7 +14,6 @@ class GestionnaireDetection:
         if not self._detection_active(etat):
             return None
         
-        # Passer à la fois l'objet cible et la couleur cible
         couleur_cible = getattr(etat, 'couleur_cible', None)
         objet_detecte = self._camera.detecter_objets(etat.objet_cible, couleur_cible)
         
