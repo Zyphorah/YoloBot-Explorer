@@ -14,7 +14,9 @@ class GestionnaireDetection:
         if not self._detection_active(etat):
             return None
         
-        objet_detecte = self._camera.detecter_objets(etat.objet_cible)
+        # Passer à la fois l'objet cible et la couleur cible
+        couleur_cible = getattr(etat, 'couleur_cible', None)
+        objet_detecte = self._camera.detecter_objets(etat.objet_cible, couleur_cible)
         
         if objet_detecte:
             self._notifier_detection(objet_detecte)
@@ -25,7 +27,9 @@ class GestionnaireDetection:
         return etat.mode_detection or etat.mode_autonome
     
     def _notifier_detection(self, objet_detecte: dict) -> None:
-        msg = f"Detection: {objet_detecte['classe']} ({objet_detecte['position']})"
+        couleur = objet_detecte.get('couleur', '')
+        couleur_str = f" {couleur}" if couleur else ""
+        msg = f"Detection: {objet_detecte['classe']}{couleur_str} ({objet_detecte['position']})"
         print(msg)
         self._ble.send_status(msg)
     

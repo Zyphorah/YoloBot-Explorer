@@ -6,7 +6,8 @@ class EtatRobot:
             "mode_autonome": False,
             "action_courante": "stop",
             "debut_rotation": 0,
-            "objet_cible": "person"
+            "objet_cible": "person",
+            "couleur_cible": None  # Couleur cible pour la détection (ex: "rouge", "bleu")
         }
     
     def __getattr__(self, name: str):

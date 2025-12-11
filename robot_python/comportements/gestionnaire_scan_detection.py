@@ -45,7 +45,8 @@ class GestionnaireScanDetection:
         self._servo.tourner(self._angle_servo_actuel)
     
     def _effectuer_etape_scan(self, etat: EtatRobot) -> Optional[dict]:
-        objet_detecte = self._camera.detecter_objets(etat.objet_cible)
+        couleur_cible = getattr(etat, 'couleur_cible', None)
+        objet_detecte = self._camera.detecter_objets(etat.objet_cible, couleur_cible)
         
         if objet_detecte:
             print(f"Scan: cible trouvee a {self._angle_servo_actuel} degres")
@@ -57,7 +58,8 @@ class GestionnaireScanDetection:
         return None
     
     def _suivre_cible(self, etat: EtatRobot) -> Optional[dict]:
-        objet_detecte = self._camera.detecter_objets(etat.objet_cible)
+        couleur_cible = getattr(etat, 'couleur_cible', None)
+        objet_detecte = self._camera.detecter_objets(etat.objet_cible, couleur_cible)
         
         if objet_detecte:
             self._centrer_cible_avec_servo(objet_detecte.get('position'))

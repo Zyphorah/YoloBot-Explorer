@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../../../services/ble_service.dart';
 import '../../../widget/settings/settings_option.dart';
-import '../../../../services/ble_service.dart';
 
 class FormeGeometrique extends StatefulWidget {
   const FormeGeometrique({super.key});
@@ -33,14 +34,31 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
   selectionColorInit() async {
     String? color = await storage.read(key: 'selected_color');
     setState(() {
-      if (color == 'red') {
+      if (color == 'rouge') {
         selectionColor = 'Rouge';
-      } else if (color == 'green') {
+      } else if (color == 'vert') {
         selectionColor = 'Vert';
-      } else if (color == 'blue') {
+      } else if (color == 'bleu') {
         selectionColor = 'Bleu';
       }
     });
+  }
+
+  /// Envoie la commande set_target avec la forme et la couleur actuelles
+  void _sendTargetCommand() async {
+    String? shape = await storage.read(key: 'selected_shape');
+    String? color = await storage.read(key: 'selected_color');
+
+    if (shape != null && color != null) {
+      // Envoie forme + couleur: set_target:shape:color
+      _bleService.sendCommand('set_target', '$shape:$color');
+    } else if (shape != null) {
+      // Envoie seulement la forme: set_target:shape
+      _bleService.sendCommand('set_target', shape);
+    } else if (color != null) {
+      // Seulement la couleur: set_color:color
+      _bleService.sendCommand('set_color', color);
+    }
   }
 
   @override
@@ -65,9 +83,9 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
                 selectedOption = selectedOption == 'Carré' ? null : 'Carré';
               });
               if (selectedOption == 'Carré') {
-                _bleService.sendCommand('set_object', 'square');
                 storage.write(key: 'selected_shape', value: 'square');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_shape');
               }
@@ -82,9 +100,9 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
                 selectedOption = selectedOption == 'Cercle' ? null : 'Cercle';
               });
               if (selectedOption == 'Cercle') {
-                _bleService.sendCommand('set_object', 'circle');
                 storage.write(key: 'selected_shape', value: 'circle');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_shape');
               }
@@ -96,24 +114,27 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
             isSelected: selectedOption == 'Triangle',
             onTap: () {
               setState(() {
-                selectedOption = selectedOption == 'Triangle' ? null : 'Triangle';
+                selectedOption = selectedOption == 'Triangle'
+                    ? null
+                    : 'Triangle';
               });
               if (selectedOption == 'Triangle') {
-                _bleService.sendCommand('set_object', 'triangle');
                 storage.write(key: 'selected_shape', value: 'triangle');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_shape');
               }
             },
           ),
- 
           // Gestion des couleurs
-          Text(
-            'Selectionner une couleur',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16.0),
+            child: Text(
+              'Selectionner une couleur',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           ),
-
           SettingsOption(
             title: 'Rouge',
             icon: Icons.circle,
@@ -123,8 +144,9 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
                 selectionColor = selectionColor == 'Rouge' ? null : 'Rouge';
               });
               if (selectionColor == 'Rouge') {
-                storage.write(key: 'selected_color', value: 'red');
+                storage.write(key: 'selected_color', value: 'rouge');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_color');
               }
@@ -139,14 +161,14 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
                 selectionColor = selectionColor == 'Vert' ? null : 'Vert';
               });
               if (selectionColor == 'Vert') {
-                storage.write(key: 'selected_color', value: 'green');
+                storage.write(key: 'selected_color', value: 'vert');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_color');
               }
             },
           ),
-
           SettingsOption(
             title: 'Bleu',
             icon: Icons.circle,
@@ -156,8 +178,9 @@ class _FormeGeometriqueState extends State<FormeGeometrique> {
                 selectionColor = selectionColor == 'Bleu' ? null : 'Bleu';
               });
               if (selectionColor == 'Bleu') {
-                storage.write(key: 'selected_color', value: 'blue');
+                storage.write(key: 'selected_color', value: 'bleu');
                 storage.delete(key: 'custom_object');
+                _sendTargetCommand();
               } else {
                 storage.delete(key: 'selected_color');
               }

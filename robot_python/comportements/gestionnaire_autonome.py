@@ -27,7 +27,9 @@ class GestionnaireAutonome:
         if self._navigation.verifier_collision():
             return self._terminer_mission(etat)
 
-        objet = self._camera.detecter_objets(etat.objet_cible)
+        # Passer la couleur cible pour la détection
+        couleur_cible = getattr(etat, 'couleur_cible', None)
+        objet = self._camera.detecter_objets(etat.objet_cible, couleur_cible)
         
         if not objet:
             return self._chercher_cible()
