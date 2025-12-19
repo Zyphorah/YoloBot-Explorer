@@ -7,7 +7,7 @@ from moteur.dc import Dc
 class FacadeNavigation:
 
     # Temps pour faire 90 degrés (ajuster selon le robot)
-    TEMPS_ROTATION_90 = 1.5
+    TEMPS_ROTATION_90 = 1.0
 
     def tourner_angle_droit(self, angle=90):
         duree = (angle / 90.0) * self.TEMPS_ROTATION_90

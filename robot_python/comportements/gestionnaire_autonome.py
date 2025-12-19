@@ -61,6 +61,11 @@ class GestionnaireAutonome:
         idx = (idx + 1) % len(positions)
         self._angle_servo = positions[idx]
         self._servo.tourner(self._angle_servo)
+        
+        # Si on revient au début du cycle, on tourne le robot pour explorer une autre zone
+        if self._angle_servo == 0:
+            print("Autonome: scan complet, rotation du robot")
+            self._navigation.tourner_angle_droit(45)
 
     def _approcher_cible(self, objet: dict) -> bool:
         # Réinitialiser le compteur de perte de cible

@@ -9,17 +9,17 @@ import matplotlib.pyplot as plt
 
 COLOR_RANGES = {
     "rouge": [
-        (np.array([0, 100, 100]), np.array([10, 255, 255])),
-        (np.array([160, 100, 100]), np.array([180, 255, 255]))
+        (np.array([0, 50, 50]), np.array([10, 255, 255])),
+        (np.array([160, 50, 50]), np.array([180, 255, 255]))
     ],
     "red": [
-        (np.array([0, 100, 100]), np.array([10, 255, 255])),
-        (np.array([160, 100, 100]), np.array([180, 255, 255]))
+        (np.array([0, 50, 50]), np.array([10, 255, 255])),
+        (np.array([160, 50, 50]), np.array([180, 255, 255]))
     ],
-    "vert": [(np.array([35, 100, 100]), np.array([85, 255, 255]))],
-    "green": [(np.array([35, 100, 100]), np.array([85, 255, 255]))],
-    "bleu": [(np.array([100, 100, 100]), np.array([130, 255, 255]))],
-    "blue": [(np.array([100, 100, 100]), np.array([130, 255, 255]))]
+    "vert": [(np.array([35, 50, 50]), np.array([85, 255, 255]))],
+    "green": [(np.array([35, 50, 50]), np.array([85, 255, 255]))],
+    "bleu": [(np.array([100, 50, 50]), np.array([130, 255, 255]))],
+    "blue": [(np.array([100, 50, 50]), np.array([130, 255, 255]))]
 }
 
 
@@ -113,10 +113,12 @@ class Camera:
         best_color = "inconnue"
         best_percentage = 0
         
-        for color_name, ranges in COLOR_RANGES.items():
-            if color_name in ["red", "green", "blue", "rouge", "vert", "bleu"]:
-                continue
-                
+        # On ne garde que les noms français pour éviter les doublons dans le résultat
+        couleurs_a_tester = ["rouge", "vert", "bleu"]
+        
+        for color_name in couleurs_a_tester:
+            ranges = COLOR_RANGES[color_name]
+            
             mask = np.zeros(roi_hsv.shape[:2], dtype=np.uint8)
             for lower, upper in ranges:
                 mask = cv2.bitwise_or(mask, cv2.inRange(roi_hsv, lower, upper))

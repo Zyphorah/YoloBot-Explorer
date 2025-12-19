@@ -5,7 +5,7 @@ from navigation.facade_navigation import FacadeNavigation
 
 class GestionnaireRotation:
     
-    DUREE_ROTATION = 1.5
+    DUREE_ROTATION = 0.1
     ACTIONS_ROTATION = ["tourner_gauche_90", "tourner_droite_90"]
     
     def __init__(self, navigation: FacadeNavigation):
