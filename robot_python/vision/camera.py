@@ -35,13 +35,8 @@ class Camera:
 
         if not self.use_gui:
             os.environ["QT_QPA_PLATFORM"] = "offscreen"
-        else:
-            if os.environ.get("WAYLAND_DISPLAY"):
-                os.environ["QT_QPA_PLATFORM"] = "wayland"
-            elif os.environ.get("DISPLAY"):
-                os.environ["QT_QPA_PLATFORM"] = "xcb"
-            else:
-                self.use_gui = False
+        # On laisse Qt/OpenCV détecter automatiquement la plateforme (Wayland/XCB)
+        # pour éviter les conflits de plugins forcés.
 
         try:
             self.picam2 = Picamera2()
@@ -51,12 +46,6 @@ class Camera:
             )
             self.picam2.configure(config)
             self.picam2.start()
-
-            if self.use_gui:
-                plt.ion()  # Enable interactive mode for real-time updates
-                self.fig, self.ax = plt.subplots()
-                self.im = self.ax.imshow(np.zeros((640, 640, 3), dtype=np.uint8))
-                plt.title('Detection Camera')
 
             print("Camera: démarrée avec succès")
 
@@ -159,11 +148,15 @@ class Camera:
         else:
             frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+        # Plus besoin de conversion RGB pour l'affichage matplotlib
+        # frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         
-        cv2.imwrite("debug_captured_frame.jpg", frame_bgr)
+        # Debug optionnel : sauvegarde disque
+        # cv2.imwrite("debug_captured_frame.jpg", frame_bgr)
         
         try:
+            # YOLO attend du RGB
+            frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
             results = self.model.predict(frame_rgb, verbose=False)[0]
         except Exception as e:
             print(f"Camera: erreur de prediction YOLO: {e}")
@@ -188,8 +181,12 @@ class Camera:
                     
                     # Si une couleur cible est spécifiée mais ne correspond pas, ignorer cet objet
                     if couleur_cible and not info_couleur["couleur_match"]:
-                        print(f"Camera: {nom_classe} trouvé mais couleur '{info_couleur['couleur_detectee']}' != '{couleur_cible}'")
+                        # print(f"Camera: {nom_classe} trouvé mais couleur '{info_couleur['couleur_detectee']}' != '{couleur_cible}'")
                         continue
+
+                    cv2.rectangle(frame_bgr, (x1, y1), (x2, y2), (0, 255, 0), 2)
+                    label = f"{nom_classe} {confiance:.2f}"
+                    cv2.putText(frame_bgr, label, (x1, y1 - 10), cv2.LINE_AA, 0.5, (0, 255, 0), 2)
 
                     objet_detecte = {
                         "classe": nom_classe,
@@ -210,9 +207,8 @@ class Camera:
                     
         if self.use_gui:
             try:
-                self.im.set_data(cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB))
-                plt.draw()
-                plt.pause(0.01)
+                cv2.imshow("Robot Vision", frame_bgr)
+                cv2.waitKey(1)
             except Exception as e:
                 print(f"Camera: erreur affichage GUI: {e}")
                 self.use_gui = False
@@ -225,4 +221,4 @@ class Camera:
             self.picam2.stop()
             self.picam2.close()
         if self.use_gui:
-            plt.close('all')
+            cv2.destroyAllWindows()

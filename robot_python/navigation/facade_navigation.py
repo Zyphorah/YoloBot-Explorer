@@ -6,8 +6,12 @@ from moteur.dc import Dc
 
 class FacadeNavigation:
 
+    # Temps pour faire 90 degrés (ajuster selon le robot)
+    TEMPS_ROTATION_90 = 1.5
+
     def tourner_angle_droit(self, angle=90):
-        duree = (angle / 90.0) * 1.0
+        duree = (angle / 90.0) * self.TEMPS_ROTATION_90
+        print(f"Navigation: tourner droite {angle} deg -> {duree:.2f}s")
         
         self.moteurA.tourner_gauche() 
         self.moteurB.tourner_droite()  
@@ -15,7 +19,8 @@ class FacadeNavigation:
         self.arreter()
     
     def tourner_angle_gauche(self, angle=90):
-        duree = (angle / 90.0) * 1.0
+        duree = (angle / 90.0) * self.TEMPS_ROTATION_90
+        print(f"Navigation: tourner gauche {angle} deg -> {duree:.2f}s")
         
         self.moteurA.tourner_droite()  
         self.moteurB.tourner_gauche()  

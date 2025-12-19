@@ -130,13 +130,14 @@ class GestionnaireAutonome:
         angle_abs = abs(angle)
         
         if angle_abs > 45:
-            angle_ajuste = angle_abs * 0.4
+            angle_ajuste = angle_abs * 0.6
         elif angle_abs > 20:
-            angle_ajuste = angle_abs * 0.3
-        else:
             angle_ajuste = angle_abs * 0.5
+        else:
+            angle_ajuste = angle_abs * 0.8
         
-        angle_ajuste = max(5, min(angle_ajuste, 45))
+        # Augmenter l'angle minimum pour vaincre inertie/frottement
+        angle_ajuste = max(12, min(angle_ajuste, 45))
         
         if angle > 0:
             print(f"Autonome: rotation gauche {angle_ajuste:.0f} degres (ecart={angle:.0f})")

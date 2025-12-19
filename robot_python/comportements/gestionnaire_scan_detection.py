@@ -10,7 +10,7 @@ class GestionnaireScanDetection:
     POSITIONS_SCAN = [0, 90, 180]
     ANGLE_MIN = 0
     ANGLE_MAX = 180
-    ANGLE_ROTATION_ROUES = 30
+    ANGLE_ROTATION_ROUES = 45
     AJUSTEMENT_CENTRAGE = 10
     
     def __init__(self, servo: Servo, navigation: FacadeNavigation, camera: Camera, ble_service: BLEService):
