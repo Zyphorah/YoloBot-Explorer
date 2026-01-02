@@ -1,24 +1,24 @@
-# Robot Autonome avec Interface Mobile
+# Autonomous Robot with Mobile Interface
 
-## Vue d'ensemble
+## Overview
 
-Système robotique complet composé d'un robot Raspberry Pi capable de détecter des objets et naviguer de manière autonome, contrôlé via une application mobile Flutter. Le robot analyse son environnement, identifie les obstacles, et exécute les commandes reçues en validant les conditions de sécurité. En cas de situation critique (collision, perte de vision), le robot arrête immédiatement et signale l'anomalie.
+Complete robotic system composed of a Raspberry Pi robot capable of detecting objects and navigating autonomously, controlled via a Flutter mobile application. The robot analyzes its environment, identifies obstacles, and executes received commands while validating safety conditions. In critical situations (collision, loss of vision), the robot stops immediately and reports the anomaly.
 
 ## Architecture
 
-Le système est divisé en deux composantes : un backend (robot_python) qui gère la vision YOLO, la navigation, les collisions et la communication Bluetooth, et un frontend (mobile_app) Flutter permettant commandes manuelles, voix et configuration de cibles. La communication se fait en Bluetooth Low Energy avec des UUID spécifiques.
+The system is divided into two components: a backend (robot_python) that handles YOLO vision, navigation, collisions, and Bluetooth communication, and a frontend (mobile_app) Flutter application providing manual controls, voice input, and target configuration. Communication is done over Bluetooth Low Energy with specific UUIDs.
 
-## Configuration Bluetooth
+## Bluetooth Configuration
 
 Service UUID : A07498CA-AD5B-474E-940D-16F1FBE7E8CD
-Commandes : 51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B
-Statut : 2F8C4D2A-1D3B-4F5A-9C6E-7B8A9B0C1D2E
+Commands : 51FF12BB-3ED8-46E5-B4F9-D64E2FEC021B
+Status : 2F8C4D2A-1D3B-4F5A-9C6E-7B8A9B0C1D2E
 
-Ces identifiants doivent être identiques sur le robot et l'application mobile. Appairez d'abord le robot via les paramètres Bluetooth du système avant utilisation.
+These identifiers must be identical on the robot and the mobile app. Pair the robot first via the system Bluetooth settings before use.
 
 ## Installation
 
-### Dépendances système (Linux/Debian)
+### System dependencies (Linux/Debian)
 
 ```
 sudo apt update
@@ -26,19 +26,19 @@ sudo apt install -y libcap-dev
 sudo apt install libcairo2-dev pkg-config python3-dev libgirepository1.0-dev -y
 ```
 
-### Installation de libcamera
+### Installing libcamera
 
 ```
-il faut installer libcamera
+libcamera must be installed
 ```
 
-### Environnement Python
+### Python environment
 
 ```
 uv venv --system-site-packages
 ```
 
-### Dépendances Python
+### Python dependencies
 
 ```
 uv pip uninstall numpy
@@ -46,36 +46,36 @@ uv pip install -r robot_python/requirements.txt
 uv pip install bluezero
 ```
 
-### Installation des dépendances Bluetooth
+### Bluetooth dependencies
 
 ```
 pip install bleak
 ```
 
-### Dépendances Flutter
+### Flutter dependencies
 
 ```
 cd mobile_app
 flutter pub get
 ```
 
-## Structure du projet
+## Project structure
 
-**robot_python** : Backend du robot
-- moteur : Drivers servos et moteurs DC
-- navigation : Mouvements, trajectoires, collisions
-- vision : Capture et analyse YOLO
-- services : Service BLE
-- comportements : Modes autonome, détection, scan
-- commande : Interprétation des commandes
+**robot_python** : Robot backend
+- moteur : Servo drivers and DC motor drivers
+- navigation : Movements, trajectories, collisions
+- vision : Capture and YOLO analysis
+- services : BLE service
+- comportements : Autonomous, detection, scan modes
+- commande : Command interpretation
 
-**mobile_app** : Application Flutter
-- lib/screens : Écrans de l'interface
-- lib/services : Service BLE
-- lib/widgets : Composants réutilisables
-- lib/utils : Constantes et utilitaires
+**mobile_app** : Flutter application
+- lib/screens : Interface screens
+- lib/services : BLE service
+- lib/widgets : Reusable components
+- lib/utils : Constants and utilities
 
-## Lancement du systeme
+## Running the system
 
 ### Backend robot_python
 
@@ -91,19 +91,19 @@ cd mobile_app
 flutter run
 ```
 
-Sélectionnez le robot dans la liste Bluetooth après démarrage.
+Select the robot from the Bluetooth list after startup.
 
-## Utilisation
+## Usage
 
-Commandes disponibles : manuelles (avancer, reculer, tourner), vocales, et autonome. L'application permet de configurer la forme et couleur cibles. En mode autonome, le robot cherche et s'approche automatiquement de la cible. Chaque mode a ses limitations : l'autonome analyse l'environnement avant de se déplacer, le manuel nécessite des inputs constants.
+Available commands: manual (forward, backward, turn), voice, and autonomous. The app allows configuring target shape and color. In autonomous mode, the robot searches for and approaches the target automatically. Each mode has limitations: autonomous analyzes the environment before moving, manual requires continuous inputs.
 
-## Gestion des erreurs
+## Error handling
 
-Collision détectée : arrêt immédiat et signalement à l'application. Caméra défaillante : basculement en mode réduit sans vision. Perte Bluetooth : le robot continue de fonctionner mais notifie l'utilisateur. Avant redémarrage après arrêt d'urgence, vérifier que l'environnement est sûr.
+Collision detected: immediate stop and notification to the app. Camera failure: fallback to a reduced mode without vision. Bluetooth loss: the robot continues operating but notifies the user. Before restarting after an emergency stop, verify the environment is safe.
 
-## Notes importantes
+## Important notes
 
-- Vérifier l'espace disponible avant lancement
-- Tester en environnement contrôlé avant utilisation
-- Vérifier la batterie avant chaque session
-- Le fichier best.pt (modèle YOLO) doit être présent dans robot_python
+- Check available space before starting
+- Test in a controlled environment before use
+- Check battery before each session
+- The file best.pt (YOLO model) must be present in robot_python
